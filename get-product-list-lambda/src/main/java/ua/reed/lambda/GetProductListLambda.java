@@ -1,28 +1,30 @@
-package ua.reed;
+package ua.reed.lambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import ua.reed.dto.ProductDto;
 import ua.reed.service.ProductService;
+import ua.reed.service.Services;
+import ua.reed.utils.LambdaPayloadUtils;
+
+import java.util.List;
+import java.util.Map;
 
 public class GetProductListLambda implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String PRODUCTS_KEY = "products";
+
+    private final ProductService productService = Services.create();
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent event, final Context context) {
-        APIGatewayProxyResponseEvent responseEvent = new APIGatewayProxyResponseEvent();
         try {
-            ProductService productService = Initializer.create();
-            responseEvent.setBody(MAPPER.writeValueAsString(productService.getProducts()));
-            responseEvent.setStatusCode(200);
-            return responseEvent;
+            List<ProductDto> products = productService.getProducts();
+            return LambdaPayloadUtils.createResponse(200, null, Map.of(PRODUCTS_KEY, products));
         } catch (Exception ex) {
-            responseEvent.setStatusCode(500);
-            responseEvent.setBody(ex.getMessage());
-            return responseEvent;
+            return LambdaPayloadUtils.createDefaultErrorResponse();
         }
     }
 }

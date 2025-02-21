@@ -6,6 +6,9 @@ import ua.reed.mapper.Mapper;
 import ua.reed.repository.ProductRepository;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 public class SimpleProductService implements ProductService {
 
@@ -24,5 +27,12 @@ public class SimpleProductService implements ProductService {
         return products.stream()
                 .map(productMapper::fromSource)
                 .toList();
+    }
+
+    @Override
+    public Optional<ProductDto> getProductById(final UUID productId) {
+        return productRepository.getProductById(productId)
+                .filter(Objects::nonNull)
+                .map(productMapper::fromSource);
     }
 }
