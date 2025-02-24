@@ -10,11 +10,8 @@ import ua.reed.service.Services;
 import ua.reed.utils.LambdaPayloadUtils;
 
 import java.util.List;
-import java.util.Map;
 
 public class GetProductListLambda implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
-
-    private static final String PRODUCTS_KEY = "products";
 
     private final ProductService productService = Services.create();
 
@@ -22,7 +19,7 @@ public class GetProductListLambda implements RequestHandler<APIGatewayProxyReque
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent event, final Context context) {
         try {
             List<ProductDto> products = productService.getProducts();
-            return LambdaPayloadUtils.createResponse(200, LambdaPayloadUtils.defaultCorsHeaders(), Map.of(PRODUCTS_KEY, products));
+            return LambdaPayloadUtils.createResponse(200, products);
         } catch (Exception ex) {
             return LambdaPayloadUtils.createDefaultErrorResponse();
         }

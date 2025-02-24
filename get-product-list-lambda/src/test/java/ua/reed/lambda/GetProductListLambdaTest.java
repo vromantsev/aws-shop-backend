@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,7 +23,6 @@ import ua.reed.service.ProductService;
 import ua.reed.utils.LambdaPayloadUtils;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,8 +32,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class GetProductListLambdaTest {
-
-    private static final String PRODUCTS_KEY = "products";
 
     @Mock
     private static ProductService productServiceMock;
@@ -73,14 +71,13 @@ public class GetProductListLambdaTest {
         APIGatewayProxyResponseEvent response = getProductListLambda.handleRequest(
                 new APIGatewayProxyRequestEvent(), new MockContext()
         );
-        @SuppressWarnings("unchecked")
-        List<ProductDto> responseBody = (List<ProductDto>) mapper.readValue(response.getBody(), Map.class).get(PRODUCTS_KEY);
+        List<ProductDto> responseBody = mapper.readValue(response.getBody(), new TypeReference<>() {});
 
         // assertions & verification
         assertNotNull(response);
         assertEquals(200, response.getStatusCode());
         assertEquals(responseBody.size(), productDtos.size());
-        assertEquals(response, LambdaPayloadUtils.createResponse(200, LambdaPayloadUtils.defaultCorsHeaders(), Map.of(PRODUCTS_KEY, productDtos)));
+        assertEquals(response, LambdaPayloadUtils.createResponse(200, productDtos));
         verify(productServiceMock, atMostOnce()).getProducts();
     }
 }

@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public final class LambdaPayloadUtils {
@@ -16,23 +17,30 @@ public final class LambdaPayloadUtils {
     private LambdaPayloadUtils() {
     }
 
-    public static APIGatewayProxyResponseEvent createResponse(final int statusCode,
-                                                              final Map<String, String> headers,
-                                                              final Map<String, Object> body) {
+    public static <T> APIGatewayProxyResponseEvent createResponse(final int statusCode,
+                                                                  final T body) {
+        return createResponseInternal(statusCode, null, body);
+    }
+
+    private static <T> APIGatewayProxyResponseEvent createResponseInternal(final int statusCode,
+                                                                           final Map<String, String> headers,
+                                                                           final T body) {
         var response = new APIGatewayProxyResponseEvent()
                 .withStatusCode(statusCode)
                 .withBody(createBody(body));
+        Map<String, String> corsHeaders = defaultCorsHeaders();
         if (headers != null && !headers.isEmpty()) {
-            response.withHeaders(headers);
+            corsHeaders.putAll(headers);
         }
+        response.withHeaders(corsHeaders);
         return response;
     }
 
     public static APIGatewayProxyResponseEvent createDefaultErrorResponse() {
-        return LambdaPayloadUtils.createResponse(500, Map.of(CONTENT_TYPE_HEADER, APPLICATION_JSON), ERROR_MESSAGE_PAYLOAD);
+        return LambdaPayloadUtils.createResponseInternal(500, Map.of(CONTENT_TYPE_HEADER, APPLICATION_JSON), ERROR_MESSAGE_PAYLOAD);
     }
 
-    public static String createBody(Map<String, Object> body) {
+    public static <T> String createBody(T body) {
         try {
             return MAPPER.writeValueAsString(body);
         } catch (JsonProcessingException e) {
@@ -41,10 +49,12 @@ public final class LambdaPayloadUtils {
     }
 
     public static Map<String, String> defaultCorsHeaders() {
-        return Map.of(
-                "Access-Control-Allow-Origin", "*",
-                "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS",
-                "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        return new HashMap<>(
+                Map.of(
+                        "Access-Control-Allow-Origin", "*",
+                        "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS",
+                        "Access-Control-Allow-Headers", "Content-Type,Authorization"
+                )
         );
     }
 }

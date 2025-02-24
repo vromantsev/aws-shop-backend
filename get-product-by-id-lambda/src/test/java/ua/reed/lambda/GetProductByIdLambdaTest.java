@@ -20,7 +20,6 @@ import ua.reed.mock.MockContext;
 import ua.reed.mock.MockData;
 import ua.reed.service.ProductService;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +37,6 @@ import static org.mockito.Mockito.when;
 public class GetProductByIdLambdaTest {
 
     private static final String PRODUCT_ID_KEY = "productId";
-    private static final String PRODUCT_KEY = "product";
 
     @Mock
     private ProductService productServiceMock;
@@ -81,17 +79,16 @@ public class GetProductByIdLambdaTest {
 
         // then
         APIGatewayProxyResponseEvent response = getProductByIdLambda.handleRequest(event, new MockContext());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) mapper.readValue(response.getBody(), Map.class).get(PRODUCT_KEY);
+        ProductDto responseBody = mapper.readValue(response.getBody(), ProductDto.class);
 
         // assertions & verification
         assertNotNull(response);
         assertEquals(200, response.getStatusCode());
         assertAll(() -> {
-            assertEquals(UUID.fromString((String) responseBody.get("id")), randomProduct.getId());
-            assertEquals(responseBody.get("description"), randomProduct.getDescription());
-            assertEquals(BigDecimal.valueOf((int) responseBody.get("price")), randomProduct.getPrice());
-            assertEquals(responseBody.get("title"), randomProduct.getTitle());
+            assertEquals(responseBody.id(), randomProduct.getId());
+            assertEquals(responseBody.description(), randomProduct.getDescription());
+            assertEquals(responseBody.price(), randomProduct.getPrice());
+            assertEquals(responseBody.title(), randomProduct.getTitle());
         });
         verify(productServiceMock, atMostOnce()).getProductById(randomProduct.getId());
     }
