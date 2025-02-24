@@ -3,8 +3,9 @@ package ua.reed.infrastructure;
 import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
+import software.amazon.awscdk.services.apigateway.Cors;
+import software.amazon.awscdk.services.apigateway.CorsOptions;
 import software.amazon.awscdk.services.apigateway.LambdaIntegration;
-import software.amazon.awscdk.services.apigateway.LambdaRestApi;
 import software.amazon.awscdk.services.apigateway.Resource;
 import software.amazon.awscdk.services.apigateway.RestApi;
 import software.amazon.awscdk.services.lambda.Code;
@@ -45,6 +46,13 @@ public class GetProductListStack extends Stack {
         RestApi restApi = RestApi.Builder.create(this, "ProductsRestApi")
                 .restApiName("ProductsApi")
                 .description("REST api that provides integration with multiple Lambda functions")
+                .defaultCorsPreflightOptions(
+                        CorsOptions.builder()
+                                .allowOrigins(Cors.ALL_ORIGINS)
+                                .allowMethods(Cors.ALL_METHODS)
+                                .allowHeaders(Cors.DEFAULT_HEADERS)
+                                .build()
+                )
                 .build();
 
         LambdaIntegration productsLambdaIntegration = LambdaIntegration.Builder.create(getProductListLambda)
