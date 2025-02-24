@@ -16,6 +16,7 @@ import java.util.UUID;
 public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final String PRODUCT_KEY = "product";
+    private static final String PRODUCT_ID_KEY = "productId";
 
     private final ProductService productService = Services.create();
 
@@ -23,12 +24,12 @@ public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyReque
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent event, final Context context) {
         try {
             Map<String, String> pathParameters = event.getPathParameters();
-            String productIdAsString = pathParameters.get("productId");
+            String productIdAsString = pathParameters.get(PRODUCT_ID_KEY);
             Optional<ProductDto> productOptional = productService.getProductById(UUID.fromString(productIdAsString));
             if (productOptional.isEmpty()) {
-                return LambdaPayloadUtils.createResponse(404, null, Map.of("message", "Product with id=%s not found!".formatted(productIdAsString)));
+                return LambdaPayloadUtils.createResponse(404, LambdaPayloadUtils.defaultCorsHeaders(), Map.of("message", "Product with id=%s not found!".formatted(productIdAsString)));
             }
-            return LambdaPayloadUtils.createResponse(200, null, Map.of(PRODUCT_KEY, productOptional.get()));
+            return LambdaPayloadUtils.createResponse(200, LambdaPayloadUtils.defaultCorsHeaders(), Map.of(PRODUCT_KEY, productOptional.get()));
         } catch (Exception ex) {
             return LambdaPayloadUtils.createDefaultErrorResponse();
         }

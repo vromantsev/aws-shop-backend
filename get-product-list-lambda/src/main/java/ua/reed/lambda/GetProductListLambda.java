@@ -22,7 +22,7 @@ public class GetProductListLambda implements RequestHandler<APIGatewayProxyReque
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent event, final Context context) {
         try {
             List<ProductDto> products = productService.getProducts();
-            return LambdaPayloadUtils.createResponse(200, null, Map.of(PRODUCTS_KEY, products));
+            return LambdaPayloadUtils.createResponse(200, LambdaPayloadUtils.defaultCorsHeaders(), Map.of(PRODUCTS_KEY, products));
         } catch (Exception ex) {
             return LambdaPayloadUtils.createDefaultErrorResponse();
         }

@@ -80,7 +80,7 @@ public class GetProductListLambdaTest {
         assertNotNull(response);
         assertEquals(200, response.getStatusCode());
         assertEquals(responseBody.size(), productDtos.size());
-        assertEquals(response, LambdaPayloadUtils.createResponse(200, null, Map.of(PRODUCTS_KEY, productDtos)));
+        assertEquals(response, LambdaPayloadUtils.createResponse(200, LambdaPayloadUtils.defaultCorsHeaders(), Map.of(PRODUCTS_KEY, productDtos)));
         verify(productServiceMock, atMostOnce()).getProducts();
     }
 }

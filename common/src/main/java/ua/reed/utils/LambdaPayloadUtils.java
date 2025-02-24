@@ -13,7 +13,8 @@ public final class LambdaPayloadUtils {
     private static final Map<String, Object> ERROR_MESSAGE_PAYLOAD = Map.of("message", "Internal Server Error");
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private LambdaPayloadUtils() {}
+    private LambdaPayloadUtils() {
+    }
 
     public static APIGatewayProxyResponseEvent createResponse(final int statusCode,
                                                               final Map<String, String> headers,
@@ -37,5 +38,13 @@ public final class LambdaPayloadUtils {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Map<String, String> defaultCorsHeaders() {
+        return Map.of(
+                "Access-Control-Allow-Origin", "*",
+                "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS",
+                "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        );
     }
 }
