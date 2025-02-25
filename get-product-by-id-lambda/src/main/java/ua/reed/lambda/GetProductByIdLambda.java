@@ -24,10 +24,13 @@ public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyReque
         try {
             Map<String, String> pathParameters = event.getPathParameters();
             String productIdAsString = pathParameters.get(PRODUCT_ID_KEY);
-            Optional<ProductDto> productOptional = productService.getProductById(UUID.fromString(productIdAsString));
-            return productOptional
-                    .map(productDto -> LambdaPayloadUtils.createResponse(200, productDto))
-                    .orElseGet(() -> LambdaPayloadUtils.createResponse(404, Map.of("message", "Product with id=%s not found!".formatted(productIdAsString))));
+            if (LambdaPayloadUtils.isProductIdValid(productIdAsString)) {
+                Optional<ProductDto> productOptional = productService.getProductById(UUID.fromString(productIdAsString));
+                return productOptional
+                        .map(productDto -> LambdaPayloadUtils.createResponse(200, productDto))
+                        .orElseGet(() -> LambdaPayloadUtils.createResponse(404, Map.of("message", "Product with id=%s not found!".formatted(productIdAsString))));
+            }
+            return LambdaPayloadUtils.createErrorResponse("Product id is of invalid type, got %s, expected UUID".formatted(productIdAsString));
         } catch (Exception ex) {
             return LambdaPayloadUtils.createDefaultErrorResponse();
         }

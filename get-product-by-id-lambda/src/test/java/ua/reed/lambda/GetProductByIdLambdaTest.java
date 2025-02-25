@@ -29,8 +29,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -114,5 +116,25 @@ public class GetProductByIdLambdaTest {
         assertEquals(404, response.getStatusCode());
         assertEquals("Product with id=%s not found!".formatted(randomId), message);
         verify(productServiceMock, atMostOnce()).getProductById(randomId);
+    }
+
+    @Test
+    public void whenGetProductByInvalidIdTypeThenReturnErrorResponse() {
+        // given
+        String invalidProductId = "123";
+        APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
+        if (event.getPathParameters() == null) {
+            event.withPathParameters(Map.of("productId", invalidProductId));
+        }
+
+        // then
+        APIGatewayProxyResponseEvent response = getProductByIdLambda.handleRequest(event, new MockContext());
+        String responseBody = response.getBody();
+
+        // assertions & verification
+        assertNotNull(response);
+        assertEquals(500, response.getStatusCode());
+        assertEquals("Product id is of invalid type, got 123, expected UUID", responseBody);
+        verify(productServiceMock, never()).getProductById(any());
     }
 }
