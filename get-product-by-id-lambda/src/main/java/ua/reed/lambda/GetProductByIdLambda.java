@@ -1,9 +1,11 @@
 package ua.reed.lambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.amazonaws.services.lambda.runtime.logging.LogLevel;
 import ua.reed.dto.ProductDto;
 import ua.reed.service.ProductService;
 import ua.reed.service.Services;
@@ -21,6 +23,7 @@ public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyReque
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent event, final Context context) {
+        LambdaLogger logger = context.getLogger();
         try {
             Map<String, String> pathParameters = event.getPathParameters();
             String productIdAsString = pathParameters.get(PRODUCT_ID_KEY);
@@ -32,6 +35,7 @@ public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyReque
             }
             return LambdaPayloadUtils.createErrorResponse("Product id is of invalid type, got %s, expected UUID".formatted(productIdAsString));
         } catch (Exception ex) {
+            logger.log(ex.getMessage(), LogLevel.ERROR);
             return LambdaPayloadUtils.createDefaultErrorResponse();
         }
     }
