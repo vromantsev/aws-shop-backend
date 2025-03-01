@@ -6,6 +6,11 @@ import java.util.UUID;
 
 public class Product {
 
+    public static final String ID_FIELD = "id";
+    public static final String DESCRIPTION_FIELD = "description";
+    public static final String PRICE_FIELD = "price";
+    public static final String TITLE_FIELD = "title";
+
     private UUID id;
     private String description;
     private BigDecimal price;

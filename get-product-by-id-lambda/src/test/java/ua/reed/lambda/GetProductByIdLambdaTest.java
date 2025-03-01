@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import ua.reed.dto.ProductDto;
 import ua.reed.entity.Product;
+import ua.reed.entity.ProductWithStock;
 import ua.reed.mapper.Mapper;
 import ua.reed.mapper.ProductMapper;
 import ua.reed.mock.MockContext;
@@ -47,7 +48,7 @@ public class GetProductByIdLambdaTest {
     private static RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> getProductByIdLambda;
 
     private AutoCloseable autoCloseable;
-    private final Mapper<Product, ProductDto> productMapper = new ProductMapper();
+    private final Mapper<ProductWithStock, ProductDto> productMapper = new ProductMapper();
     private final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeEach
@@ -68,8 +69,8 @@ public class GetProductByIdLambdaTest {
     @Test
     void whenGetProductByIdThenReturnProduct() throws JsonProcessingException {
         // given
-        List<Product> products = MockData.getProducts();
-        Product randomProduct = products.get(ThreadLocalRandom.current().nextInt(products.size()));
+        List<ProductWithStock> products = MockData.getProducts();
+        ProductWithStock randomProduct = products.get(ThreadLocalRandom.current().nextInt(products.size()));
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         if (event.getPathParameters() == null) {
             event.setPathParameters(Map.of(PRODUCT_ID_KEY, randomProduct.getId().toString()));

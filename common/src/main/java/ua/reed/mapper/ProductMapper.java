@@ -1,25 +1,25 @@
 package ua.reed.mapper;
 
 import ua.reed.dto.ProductDto;
-import ua.reed.entity.Product;
+import ua.reed.entity.ProductWithStock;
 
-public class ProductMapper implements Mapper<Product, ProductDto> {
+public class ProductMapper implements Mapper<ProductWithStock, ProductDto> {
 
     @Override
-    public ProductDto fromSource(final Product source) {
+    public ProductDto fromSource(final ProductWithStock source) {
         return fromProduct(source);
     }
 
     @Override
-    public Product fromTarget(final ProductDto target) {
+    public ProductWithStock fromTarget(final ProductDto target) {
         return fromProductDto(target);
     }
 
-    private ProductDto fromProduct(final Product product) {
-        return new ProductDto(product.getDescription(), product.getId(), product.getPrice(), product.getTitle());
+    private ProductDto fromProduct(final ProductWithStock product) {
+        return new ProductDto(product.getDescription(), product.getId(), product.getPrice(), product.getTitle(), product.getCount());
     }
 
-    private Product fromProductDto(final ProductDto productDto) {
-        return new Product(productDto.id(), productDto.description(), productDto.price(), productDto.title());
+    private ProductWithStock fromProductDto(final ProductDto productDto) {
+        return new ProductWithStock(productDto.id(), productDto.description(), productDto.price(), productDto.title(), productDto.count());
     }
 }

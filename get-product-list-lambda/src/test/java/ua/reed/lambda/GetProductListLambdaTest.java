@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import ua.reed.dto.ProductDto;
 import ua.reed.entity.Product;
+import ua.reed.entity.ProductWithStock;
 import ua.reed.mapper.Mapper;
 import ua.reed.mapper.ProductMapper;
 import ua.reed.mock.MockContext;
@@ -40,7 +41,7 @@ public class GetProductListLambdaTest {
     private static RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> getProductListLambda;
 
     private AutoCloseable autoCloseable;
-    private final Mapper<Product, ProductDto> productMapper = new ProductMapper();
+    private final Mapper<ProductWithStock, ProductDto> productMapper = new ProductMapper();
     private final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeEach
@@ -61,11 +62,11 @@ public class GetProductListLambdaTest {
     @Test
     void whenGetProductListThenReturnProducts() throws JsonProcessingException {
         // given
-        List<Product> products = MockData.getProducts();
+        List<ProductWithStock> products = MockData.getProducts();
         List<ProductDto> productDtos = products.stream().map(productMapper::fromSource).collect(Collectors.toList());
 
         // when
-        when(productServiceMock.getProducts()).thenReturn(productDtos);
+        when(productServiceMock.getProducts()).thenAnswer(invocationOnMock -> productDtos);
 
         // then
         APIGatewayProxyResponseEvent response = getProductListLambda.handleRequest(
