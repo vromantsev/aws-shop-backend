@@ -6,7 +6,6 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import ua.reed.config.Configuration;
 import ua.reed.dto.ProductDto;
 import ua.reed.service.ProductService;
@@ -17,7 +16,6 @@ import java.util.Optional;
 
 public class PutProductWithStockLambda implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final Configuration LAMBDA_CONFIGURATION = new PutProductWithStockLambdaConfiguration();
 
     protected ProductService productService = Services.create();
