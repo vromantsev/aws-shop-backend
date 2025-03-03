@@ -73,19 +73,19 @@ public class Persister {
                     .tableName(Constants.PRODUCTS_TABLE_NAME)
                     .build();
             ScanResponse scanProductsResponse = this.dynamoDbClient.scan(scanProductsRequest);
-            List<ProductWithStock> productsWithoutStock = scanProductsResponse.items().stream()
+            List<ProductWithStock> products = scanProductsResponse.items().stream()
                     .map(ProductWithStock::fromMap)
                     .toList();
             ScanRequest scanStocksRequest = ScanRequest.builder()
                     .tableName(Constants.STOCKS_TABLE_NAME)
                     .build();
             ScanResponse scanStocksResponse = this.dynamoDbClient.scan(scanStocksRequest);
-            productsWithoutStock.forEach(productWithStock -> scanStocksResponse.items()
+            products.forEach(productWithStock -> scanStocksResponse.items()
                     .stream()
-                    .filter(attributes -> productWithStock.getId().equals(UUID.fromString(attributes.get(Product.ID_FIELD).s())))
+                    .filter(attributes -> productWithStock.getId().equals(UUID.fromString(attributes.get(Stock.ID_FIELD).s())))
                     .findAny()
                     .ifPresent(attributes -> productWithStock.setCount(Integer.parseInt(attributes.get(Stock.COUNT_FIELD).n()))));
-            return productsWithoutStock;
+            return products;
         } catch (DynamoDbException dynamoDbException) {
             LOGGER.log(Level.SEVERE, dynamoDbException, () -> "Failed to get all products with stocks");
             return Collections.emptyList();
