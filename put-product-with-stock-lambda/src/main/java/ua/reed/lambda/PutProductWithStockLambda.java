@@ -29,7 +29,7 @@ public class PutProductWithStockLambda implements RequestHandler<APIGatewayProxy
         logger.log(event.toString(), LogLevel.INFO);
         try {
             Optional<ProductDto> productDto = tryParseBody(event.getBody());
-            if (productDto.isEmpty() || LambdaPayloadUtils.isBodyValid(productDto.get())) {
+            if (productDto.isEmpty() || !LambdaPayloadUtils.isBodyValid(productDto.get())) {
                 return LambdaPayloadUtils.createResponse(400, "Invalid payload format - %s".formatted(event.getBody()));
             }
             Optional<ProductDto> newProduct = productService.save(productDto.get());
