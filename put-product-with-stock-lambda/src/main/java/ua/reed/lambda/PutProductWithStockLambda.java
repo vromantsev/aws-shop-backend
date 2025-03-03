@@ -6,7 +6,6 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ua.reed.config.Configuration;
 import ua.reed.dto.ProductDto;
@@ -28,7 +27,7 @@ public class PutProductWithStockLambda implements RequestHandler<APIGatewayProxy
         LambdaLogger logger = context.getLogger();
         logger.log(event.toString(), LogLevel.INFO);
         try {
-            Optional<ProductDto> productDto = tryParseBody(event.getBody());
+            Optional<ProductDto> productDto = LambdaPayloadUtils.tryParseBody(event.getBody());
             if (productDto.isEmpty() || !LambdaPayloadUtils.isBodyValid(productDto.get())) {
                 return LambdaPayloadUtils.createResponse(400, "Invalid payload format - %s".formatted(event.getBody()));
             }
@@ -60,14 +59,6 @@ public class PutProductWithStockLambda implements RequestHandler<APIGatewayProxy
         @Override
         public String getLambdaName() {
             return "PutProductWithStockLambda";
-        }
-    }
-
-    private Optional<ProductDto> tryParseBody(final String body) {
-        try {
-            return Optional.of(MAPPER.readValue(body, ProductDto.class));
-        } catch (JsonProcessingException jpe) {
-            return Optional.empty();
         }
     }
 }

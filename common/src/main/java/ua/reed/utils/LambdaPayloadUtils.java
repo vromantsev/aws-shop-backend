@@ -8,6 +8,7 @@ import ua.reed.dto.ProductDto;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class LambdaPayloadUtils {
@@ -113,5 +114,13 @@ public final class LambdaPayloadUtils {
             return false;
         }
         return true;
+    }
+
+    public static Optional<ProductDto> tryParseBody(final String body) {
+        try {
+            return Optional.of(MAPPER.readValue(body, ProductDto.class));
+        } catch (JsonProcessingException jpe) {
+            return Optional.empty();
+        }
     }
 }

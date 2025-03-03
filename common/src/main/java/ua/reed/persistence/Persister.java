@@ -20,7 +20,6 @@ import ua.reed.utils.Constants;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -74,25 +73,19 @@ public class Persister {
                     .tableName(Constants.PRODUCTS_TABLE_NAME)
                     .build();
             ScanResponse scanProductsResponse = this.dynamoDbClient.scan(scanProductsRequest);
-
+            List<ProductWithStock> productsWithoutStock = scanProductsResponse.items().stream()
+                    .map(ProductWithStock::fromMap)
+                    .toList();
             ScanRequest scanStocksRequest = ScanRequest.builder()
                     .tableName(Constants.STOCKS_TABLE_NAME)
                     .build();
             ScanResponse scanStocksResponse = this.dynamoDbClient.scan(scanStocksRequest);
-
-            return scanProductsResponse.items().stream()
-                    .map(ProductWithStock::fromMap)
-                    .filter(Objects::nonNull)
-                    .map(p -> {
-                                scanStocksResponse.items()
-                                        .stream()
-                                        .filter(attributes -> p.getId().toString().equals(attributes.get(Product.ID_FIELD).s()))
-                                        .findAny()
-                                        .ifPresent(attributes -> p.setCount(Integer.parseInt(attributes.get(Stock.COUNT_FIELD).n())));
-                                return p;
-                            }
-                    )
-                    .toList();
+            productsWithoutStock.forEach(productWithStock -> scanStocksResponse.items()
+                    .stream()
+                    .filter(attributes -> productWithStock.getId().equals(UUID.fromString(attributes.get(Product.ID_FIELD).s())))
+                    .findAny()
+                    .ifPresent(attributes -> productWithStock.setCount(Integer.parseInt(attributes.get(Stock.COUNT_FIELD).n()))));
+            return productsWithoutStock;
         } catch (DynamoDbException dynamoDbException) {
             LOGGER.log(Level.SEVERE, dynamoDbException, () -> "Failed to get all products with stocks");
             return Collections.emptyList();
