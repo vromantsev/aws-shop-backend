@@ -1,9 +1,11 @@
 package ua.reed.lambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.amazonaws.services.lambda.runtime.logging.LogLevel;
 import ua.reed.config.Configuration;
 import ua.reed.dto.ProductDto;
 import ua.reed.service.ProductService;
@@ -16,10 +18,12 @@ public class GetProductListLambda implements RequestHandler<APIGatewayProxyReque
 
     private static final Configuration LAMBDA_CONFIGURATION = new GetProductListLambdaConfig();
 
-    private final ProductService productService = Services.create();
+    protected ProductService productService = Services.create();
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent event, final Context context) {
+        LambdaLogger logger = context.getLogger();
+        logger.log(event.toString(), LogLevel.INFO);
         try {
             List<ProductDto> products = productService.getProducts();
             return LambdaPayloadUtils.createResponse(200, products);

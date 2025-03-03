@@ -33,4 +33,10 @@ public class SimpleProductService implements ProductService {
         return productRepository.getProductById(productId)
                 .map(productMapper::fromSource);
     }
+
+    @Override
+    public Optional<ProductDto> save(final ProductDto product) {
+        return productRepository.save(productMapper.fromTarget(product))
+                .map(productMapper::fromSource);
+    }
 }

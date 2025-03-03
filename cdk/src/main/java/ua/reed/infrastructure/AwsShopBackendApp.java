@@ -7,7 +7,7 @@ import software.amazon.awscdk.StackProps;
 public class AwsShopBackendApp {
 
     private static final String AWS_REGION = "eu-north-1";
-    private static final String AWS_ACCOUNT_ID = "your-account-id";
+    private static final String AWS_ACCOUNT_ID = "";
     private static final String STACK_ID = "AwsShopBackendStack";
 
     public static void main(final String[] args) {

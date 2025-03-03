@@ -12,6 +12,7 @@ import software.amazon.awscdk.services.apigateway.RestApi;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.BillingMode;
+import software.amazon.awscdk.services.dynamodb.ITable;
 import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
@@ -22,6 +23,7 @@ import ua.reed.entity.Product;
 import ua.reed.entity.Stock;
 import ua.reed.lambda.GetProductByIdLambda;
 import ua.reed.lambda.GetProductListLambda;
+import ua.reed.lambda.PutProductWithStockLambda;
 
 import java.nio.file.Paths;
 import java.util.Map;
@@ -39,10 +41,10 @@ public class AwsShopBackendStack extends Stack {
         super(scope, id, props);
 
         // DynamoDB products table
-        Table productsTable = createTableIfNotExists(PRODUCTS_TABLE_EXISTS_ID, PRODUCTS_TABLE_ID, PRODUCTS_TABLE_NAME, Product.ID_FIELD);
+        ITable productsTable = createTableIfNotExists(PRODUCTS_TABLE_EXISTS_ID, PRODUCTS_TABLE_ID, PRODUCTS_TABLE_NAME, Product.ID_FIELD);
 
         // DynamoDB stocks table
-        Table stocksTable = createTableIfNotExists(STOCKS_TABLE_EXISTS_ID, STOCKS_TABLE_ID, STOCKS_TABLE_NAME, Stock.ID_FIELD);
+        ITable stocksTable = createTableIfNotExists(STOCKS_TABLE_EXISTS_ID, STOCKS_TABLE_ID, STOCKS_TABLE_NAME, Stock.ID_FIELD);
 
         // GetProductListLambda
         Configuration getProductListLambdaConfiguration = GetProductListLambda.getLambdaConfiguration();
@@ -55,7 +57,7 @@ public class AwsShopBackendStack extends Stack {
                 .environment(
                         Map.of(
                                 "PRODUCT_TABLE", productsTable.getTableName(),
-                                "STOCKS_TABLE", stocksTable.getTableName()
+                                "STOCK_TABLE", stocksTable.getTableName()
                         )
                 )
                 .build();
@@ -75,7 +77,7 @@ public class AwsShopBackendStack extends Stack {
                 .environment(
                         Map.of(
                                 "PRODUCT_TABLE", productsTable.getTableName(),
-                                "STOCKS_TABLE", stocksTable.getTableName()
+                                "STOCK_TABLE", stocksTable.getTableName()
                         )
                 )
                 .build();
@@ -83,6 +85,26 @@ public class AwsShopBackendStack extends Stack {
         // getProductByIdLambda can access both tables
         productsTable.grantReadWriteData(getProductByIdLambda);
         stocksTable.grantReadWriteData(getProductByIdLambda);
+
+        // PutProductWithStockLambda
+        Configuration putProductWithStockLambdaConfiguration = PutProductWithStockLambda.getLambdaConfiguration();
+        Function putProductWithStockLambda = Function.Builder.create(this, putProductWithStockLambdaConfiguration.getLambdaName())
+                .runtime(Runtime.JAVA_21)
+                .timeout(Duration.seconds(30))
+                .code(Code.fromAsset(Paths.get(putProductWithStockLambdaConfiguration.getLambdaJarFilePath()).toFile().getPath()))
+                .handler(putProductWithStockLambdaConfiguration.getHandlerString())
+                .memorySize(512)
+                .environment(
+                        Map.of(
+                                "PRODUCT_TABLE", productsTable.getTableName(),
+                                "STOCK_TABLE", stocksTable.getTableName()
+                        )
+                )
+                .build();
+
+        // putProductWithStockLambda can access both tables
+        productsTable.grantReadWriteData(putProductWithStockLambda);
+        stocksTable.grantReadWriteData(putProductWithStockLambda);
 
         // API Gateway
         RestApi restApi = RestApi.Builder.create(this, "ProductsRestApi")
@@ -101,9 +123,14 @@ public class AwsShopBackendStack extends Stack {
                 .proxy(true)
                 .build();
 
+        LambdaIntegration putProductLambdaIntegration = LambdaIntegration.Builder.create(putProductWithStockLambda)
+                .proxy(true)
+                .build();
+
         // /products
         Resource products = restApi.getRoot().addResource("products");
         products.addMethod("GET", productsLambdaIntegration);
+        products.addMethod("POST", putProductLambdaIntegration);
 
         // /products/{productId}
         Resource productId = products.addResource("{productId}");
@@ -114,14 +141,13 @@ public class AwsShopBackendStack extends Stack {
         productId.addMethod("GET", productByIdLambda);
     }
 
-    private Table createTableIfNotExists(final String tableExistsId,
-                                        final String tableId,
-                                        final String tableName,
-                                        final String primaryKey) {
+    private ITable createTableIfNotExists(final String tableExistsId,
+                                          final String tableId,
+                                          final String tableName,
+                                          final String primaryKey) {
         try {
-            return (Table) Table.fromTableName(this, tableExistsId, tableName);
+            return Table.fromTableName(this, tableExistsId, tableName);
         } catch (Exception ex) {
-            // Table does not exist, proceed creating it
             return Table.Builder.create(this, tableId)
                     .tableName(tableName)
                     .partitionKey(Attribute.builder()
@@ -131,6 +157,7 @@ public class AwsShopBackendStack extends Stack {
                     )
                     .billingMode(BillingMode.PAY_PER_REQUEST)
                     .removalPolicy(RemovalPolicy.RETAIN)
+                    .deletionProtection(true)
                     .build();
         }
     }

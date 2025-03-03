@@ -3,7 +3,9 @@ package ua.reed.utils;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ua.reed.dto.ProductDto;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -70,5 +72,46 @@ public final class LambdaPayloadUtils {
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    public static boolean isCountValid(final String count) {
+        try {
+            Integer.parseInt(count);
+            return true;
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+    }
+
+    public static boolean isPriceValid(final String price) {
+        try {
+            BigDecimal.valueOf(Double.parseDouble(price));
+            return true;
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+    }
+
+    public static boolean isBodyValid(final ProductDto productDto) {
+        if (productDto.id() != null && !isProductIdValid(productDto.id().toString())) {
+            return false;
+        }
+        String description = productDto.description();
+        if (description == null || description.isBlank()) {
+            return false;
+        }
+        BigDecimal price = productDto.price();
+        if (price != null && !isPriceValid(String.valueOf(price.doubleValue()))) {
+            return false;
+        }
+        String title = productDto.title();
+        if (title == null || title.isBlank()) {
+            return false;
+        }
+        int count = productDto.count();
+        if (!isCountValid(String.valueOf(count))) {
+            return false;
+        }
+        return true;
     }
 }

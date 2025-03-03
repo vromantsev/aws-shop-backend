@@ -88,5 +88,6 @@
         <module>common</module>
         <module>get-product-list-lambda</module>
         <module>get-product-by-id-lambda</module>
+        <module>put-product-with-stock-lambda</module>
     </modules>
 </project>

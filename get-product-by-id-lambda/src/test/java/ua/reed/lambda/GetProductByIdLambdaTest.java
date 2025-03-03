@@ -1,20 +1,17 @@
 package ua.reed.lambda;
 
-import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import ua.reed.dto.ProductDto;
-import ua.reed.entity.Product;
 import ua.reed.entity.ProductWithStock;
+import ua.reed.lambda.config.GetProductByIdTestLambda;
 import ua.reed.mapper.Mapper;
 import ua.reed.mapper.ProductMapper;
 import ua.reed.mock.MockContext;
@@ -44,8 +41,7 @@ public class GetProductByIdLambdaTest {
     @Mock
     private ProductService productServiceMock;
 
-    @InjectMocks
-    private static RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> getProductByIdLambda;
+    private GetProductByIdTestLambda getProductByIdLambda;
 
     private AutoCloseable autoCloseable;
     private final Mapper<ProductWithStock, ProductDto> productMapper = new ProductMapper();
@@ -54,16 +50,12 @@ public class GetProductByIdLambdaTest {
     @BeforeEach
     public void init() {
         autoCloseable = MockitoAnnotations.openMocks(this);
+        getProductByIdLambda = new GetProductByIdTestLambda(productServiceMock);
     }
 
     @AfterEach
     public void destroy() throws Exception {
         autoCloseable.close();
-    }
-
-    @BeforeAll
-    public static void setup() {
-        getProductByIdLambda = new GetProductByIdLambda();
     }
 
     @Test

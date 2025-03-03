@@ -22,11 +22,12 @@ public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyReque
 
     private static final String PRODUCT_ID_KEY = "productId";
 
-    private final ProductService productService = Services.create();
+    protected ProductService productService = Services.create();
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent event, final Context context) {
         LambdaLogger logger = context.getLogger();
+        logger.log(event.toString(), LogLevel.INFO);
         try {
             Map<String, String> pathParameters = event.getPathParameters();
             String productIdAsString = pathParameters.get(PRODUCT_ID_KEY);

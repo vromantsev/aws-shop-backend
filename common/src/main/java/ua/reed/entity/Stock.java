@@ -1,5 +1,8 @@
 package ua.reed.entity;
 
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -53,5 +56,12 @@ public class Stock {
                 "productId=" + productId +
                 ", count=" + count +
                 '}';
+    }
+
+    public static Map<String, AttributeValue> toItem(final ProductWithStock productWithStock) {
+        return Map.of(
+                ID_FIELD, AttributeValue.builder().s(productWithStock.getId().toString()).build(),
+                COUNT_FIELD, AttributeValue.builder().n(String.valueOf(productWithStock.getCount())).build()
+        );
     }
 }

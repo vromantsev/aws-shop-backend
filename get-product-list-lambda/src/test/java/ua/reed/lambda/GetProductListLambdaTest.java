@@ -1,21 +1,18 @@
 package ua.reed.lambda;
 
-import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import ua.reed.dto.ProductDto;
-import ua.reed.entity.Product;
 import ua.reed.entity.ProductWithStock;
+import ua.reed.lambda.config.GetProductListTestLambda;
 import ua.reed.mapper.Mapper;
 import ua.reed.mapper.ProductMapper;
 import ua.reed.mock.MockContext;
@@ -35,10 +32,9 @@ import static org.mockito.Mockito.when;
 public class GetProductListLambdaTest {
 
     @Mock
-    private static ProductService productServiceMock;
+    private ProductService productServiceMock;
 
-    @InjectMocks
-    private static RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> getProductListLambda;
+    private GetProductListTestLambda getProductListLambda;
 
     private AutoCloseable autoCloseable;
     private final Mapper<ProductWithStock, ProductDto> productMapper = new ProductMapper();
@@ -47,16 +43,12 @@ public class GetProductListLambdaTest {
     @BeforeEach
     public void init() {
         autoCloseable = MockitoAnnotations.openMocks(this);
+        getProductListLambda = new GetProductListTestLambda(productServiceMock);
     }
 
     @AfterEach
     public void destroy() throws Exception {
         autoCloseable.close();
-    }
-
-    @BeforeAll
-    public static void setup() {
-        getProductListLambda = new GetProductListLambda();
     }
 
     @Test
@@ -72,7 +64,8 @@ public class GetProductListLambdaTest {
         APIGatewayProxyResponseEvent response = getProductListLambda.handleRequest(
                 new APIGatewayProxyRequestEvent(), new MockContext()
         );
-        List<ProductDto> responseBody = mapper.readValue(response.getBody(), new TypeReference<>() {});
+        List<ProductDto> responseBody = mapper.readValue(response.getBody(), new TypeReference<>() {
+        });
 
         // assertions & verification
         assertNotNull(response);
