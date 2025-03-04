@@ -12,7 +12,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import ua.reed.dto.ProductDto;
 import ua.reed.entity.ProductWithStock;
-import ua.reed.lambda.config.GetProductListTestLambda;
+import ua.reed.lambda.config.GetProductListTestableLambda;
 import ua.reed.mapper.Mapper;
 import ua.reed.mapper.ProductMapper;
 import ua.reed.mock.MockContext;
@@ -34,7 +34,7 @@ public class GetProductListLambdaTest {
     @Mock
     private ProductService productServiceMock;
 
-    private GetProductListTestLambda getProductListLambda;
+    private GetProductListTestableLambda getProductListLambda;
 
     private AutoCloseable autoCloseable;
     private final Mapper<ProductWithStock, ProductDto> productMapper = new ProductMapper();
@@ -43,7 +43,7 @@ public class GetProductListLambdaTest {
     @BeforeEach
     public void init() {
         autoCloseable = MockitoAnnotations.openMocks(this);
-        getProductListLambda = new GetProductListTestLambda(productServiceMock);
+        getProductListLambda = new GetProductListTestableLambda(productServiceMock);
     }
 
     @AfterEach

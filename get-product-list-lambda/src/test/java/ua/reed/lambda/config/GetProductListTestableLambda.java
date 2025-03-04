@@ -1,14 +1,14 @@
 package ua.reed.lambda.config;
 
-import ua.reed.lambda.GetProductByIdLambda;
+import ua.reed.lambda.GetProductListLambda;
 import ua.reed.service.ProductService;
 
 /**
  * This is a test wrapper allowing to test lambda functionality, and avoid getting aws credentials errors.
  */
-public class GetProductByIdTestLambda extends GetProductByIdLambda {
+public class GetProductListTestableLambda extends GetProductListLambda {
 
-    public GetProductByIdTestLambda(final ProductService productService) {
+    public GetProductListTestableLambda(final ProductService productService) {
         this.productService = productService;
     }
 }

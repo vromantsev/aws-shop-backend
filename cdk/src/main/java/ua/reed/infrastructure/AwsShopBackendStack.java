@@ -31,9 +31,11 @@ import java.util.Map;
 import static ua.reed.utils.Constants.PRODUCTS_TABLE_EXISTS_ID;
 import static ua.reed.utils.Constants.PRODUCTS_TABLE_ID;
 import static ua.reed.utils.Constants.PRODUCTS_TABLE_NAME;
+import static ua.reed.utils.Constants.PRODUCT_TABLE_ENV_KEY;
 import static ua.reed.utils.Constants.STOCKS_TABLE_EXISTS_ID;
 import static ua.reed.utils.Constants.STOCKS_TABLE_ID;
 import static ua.reed.utils.Constants.STOCKS_TABLE_NAME;
+import static ua.reed.utils.Constants.STOCK_TABLE_ENV_KEY;
 
 public class AwsShopBackendStack extends Stack {
 
@@ -56,8 +58,8 @@ public class AwsShopBackendStack extends Stack {
                 .memorySize(512)
                 .environment(
                         Map.of(
-                                "PRODUCT_TABLE", productsTable.getTableName(),
-                                "STOCK_TABLE", stocksTable.getTableName()
+                                PRODUCT_TABLE_ENV_KEY, productsTable.getTableName(),
+                                STOCK_TABLE_ENV_KEY, stocksTable.getTableName()
                         )
                 )
                 .build();
@@ -76,8 +78,8 @@ public class AwsShopBackendStack extends Stack {
                 .memorySize(512)
                 .environment(
                         Map.of(
-                                "PRODUCT_TABLE", productsTable.getTableName(),
-                                "STOCK_TABLE", stocksTable.getTableName()
+                                PRODUCT_TABLE_ENV_KEY, productsTable.getTableName(),
+                                STOCK_TABLE_ENV_KEY, stocksTable.getTableName()
                         )
                 )
                 .build();
@@ -96,8 +98,8 @@ public class AwsShopBackendStack extends Stack {
                 .memorySize(512)
                 .environment(
                         Map.of(
-                                "PRODUCT_TABLE", productsTable.getTableName(),
-                                "STOCK_TABLE", stocksTable.getTableName()
+                                PRODUCT_TABLE_ENV_KEY, productsTable.getTableName(),
+                                STOCK_TABLE_ENV_KEY, stocksTable.getTableName()
                         )
                 )
                 .build();
@@ -128,7 +130,7 @@ public class AwsShopBackendStack extends Stack {
                 .build();
 
         // /products
-        Resource products = restApi.getRoot().addResource("products");
+        Resource products = restApi.getRoot().addResource(PRODUCTS_TABLE_NAME);
         products.addMethod("GET", productsLambdaIntegration);
         products.addMethod("POST", putProductLambdaIntegration);
 

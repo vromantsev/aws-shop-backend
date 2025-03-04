@@ -4,11 +4,12 @@ import software.amazon.awscdk.App;
 import software.amazon.awscdk.Environment;
 import software.amazon.awscdk.StackProps;
 
+import static ua.reed.utils.Constants.STACK_ID;
+
 public class AwsShopBackendApp {
 
     private static final String AWS_REGION = "eu-north-1";
     private static final String AWS_ACCOUNT_ID = "";
-    private static final String STACK_ID = "AwsShopBackendStack";
 
     public static void main(final String[] args) {
         App app = new App();
