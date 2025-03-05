@@ -12,15 +12,11 @@ import ua.reed.service.ProductService;
 import ua.reed.service.Services;
 import ua.reed.utils.LambdaPayloadUtils;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
-public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class PutProductWithStockLambda implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final Configuration LAMBDA_CONFIGURATION = new GetProductByIdLambdaConfig();
-
-    private static final String PRODUCT_ID_KEY = "productId";
+    private static final Configuration LAMBDA_CONFIGURATION = new PutProductWithStockLambdaConfiguration();
 
     protected ProductService productService = Services.create();
 
@@ -29,15 +25,13 @@ public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyReque
         LambdaLogger logger = context.getLogger();
         logger.log(event.toString(), LogLevel.INFO);
         try {
-            Map<String, String> pathParameters = event.getPathParameters();
-            String productIdAsString = pathParameters.get(PRODUCT_ID_KEY);
-            if (LambdaPayloadUtils.isProductIdValid(productIdAsString)) {
-                Optional<ProductDto> productOptional = productService.getProductById(UUID.fromString(productIdAsString));
-                return productOptional
-                        .map(productDto -> LambdaPayloadUtils.createResponse(200, productDto))
-                        .orElseGet(() -> LambdaPayloadUtils.createResponse(404, Map.of("message", "Product with id=%s not found!".formatted(productIdAsString))));
+            Optional<ProductDto> productDto = LambdaPayloadUtils.tryParseBody(event.getBody());
+            if (productDto.isEmpty() || !LambdaPayloadUtils.isBodyValid(productDto.get())) {
+                return LambdaPayloadUtils.createResponse(400, "Invalid payload format - %s".formatted(event.getBody()));
             }
-            return LambdaPayloadUtils.createErrorResponse("Product id is of invalid type, got %s, expected UUID".formatted(productIdAsString));
+            Optional<ProductDto> newProduct = productService.save(productDto.get());
+            return newProduct.map(dto -> LambdaPayloadUtils.createResponse(201, dto))
+                    .orElseGet(() -> LambdaPayloadUtils.createErrorResponse("Failed to create a product with stock %s".formatted(productDto.get())));
         } catch (Exception ex) {
             logger.log(ex.getMessage(), LogLevel.ERROR);
             return LambdaPayloadUtils.createDefaultErrorResponse();
@@ -48,21 +42,21 @@ public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyReque
         return LAMBDA_CONFIGURATION;
     }
 
-    private static class GetProductByIdLambdaConfig implements Configuration {
+    private static class PutProductWithStockLambdaConfiguration implements Configuration {
 
         @Override
         public String getLambdaJarFilePath() {
-            return "../get-product-by-id-lambda/target/get-product-by-id-lambda-1.0.0.jar";
+            return "../put-product-with-stock-lambda/target/put-product-with-stock-lambda-1.0.0.jar";
         }
 
         @Override
         public String getHandlerString() {
-            return "ua.reed.lambda.GetProductByIdLambda::handleRequest";
+            return "ua.reed.lambda.PutProductWithStockLambda::handleRequest";
         }
 
         @Override
         public String getLambdaName() {
-            return "GetProductByIdLambda";
+            return "PutProductWithStockLambda";
         }
     }
 }

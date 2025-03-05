@@ -13,10 +13,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <aws-lambda-java-core.version>1.2.3</aws-lambda-java-core.version>
         <aws-lambda-java-events.version>3.11.5</aws-lambda-java-events.version>
+        <aws-lambda-java-log4j2.version>1.6.0</aws-lambda-java-log4j2.version>
+        <dynamodb.version>2.25.35</dynamodb.version>
         <jackson.version>2.17.1</jackson.version>
         <junit-jupiter.version>5.10.</junit-jupiter.version>
         <mockito-junit-jupiter.version>5.11.0</mockito-junit-jupiter.version>
-        <aws-lambda-java-log4j2.version>1.6.0</aws-lambda-java-log4j2.version>
     </properties>
 
     <dependencies>
@@ -34,6 +35,11 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-lambda-java-log4j2</artifactId>
             <version>${aws-lambda-java-log4j2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>dynamodb</artifactId>
+            <version>${dynamodb.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -82,5 +88,6 @@
         <module>common</module>
         <module>get-product-list-lambda</module>
         <module>get-product-by-id-lambda</module>
+        <module>put-product-with-stock-lambda</module>
     </modules>
 </project>

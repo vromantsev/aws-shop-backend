@@ -12,4 +12,6 @@ public interface ProductService {
 
     Optional<ProductDto> getProductById(UUID productId);
 
+    Optional<ProductDto> save(ProductDto product);
+
 }

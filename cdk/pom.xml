@@ -20,6 +20,7 @@
         <constructs.version>[10.0.0,11.0.0)</constructs.version>
         <get-product-list-lambda.version>1.0.0</get-product-list-lambda.version>
         <get-product-by-id-lambda.version>1.0.0</get-product-by-id-lambda.version>
+        <put-product-with-stock-lambda.version>1.0.0</put-product-with-stock-lambda.version>
     </properties>
 
     <dependencies>
@@ -44,6 +45,11 @@
             <artifactId>get-product-by-id-lambda</artifactId>
             <version>${get-product-by-id-lambda.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ua.reed</groupId>
+            <artifactId>put-product-with-stock-lambda</artifactId>
+            <version>${put-product-with-stock-lambda.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -62,7 +68,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>ua.reed.infrastructure.GetProductListApp</mainClass>
+                    <mainClass>ua.reed.infrastructure.AwsShopBackendApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>

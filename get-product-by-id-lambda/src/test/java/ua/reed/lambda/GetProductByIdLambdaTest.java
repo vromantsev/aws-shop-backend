@@ -1,19 +1,17 @@
 package ua.reed.lambda;
 
-import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import ua.reed.dto.ProductDto;
-import ua.reed.entity.Product;
+import ua.reed.entity.ProductWithStock;
+import ua.reed.lambda.config.GetProductByIdTestableLambda;
 import ua.reed.mapper.Mapper;
 import ua.reed.mapper.ProductMapper;
 import ua.reed.mock.MockContext;
@@ -43,16 +41,16 @@ public class GetProductByIdLambdaTest {
     @Mock
     private ProductService productServiceMock;
 
-    @InjectMocks
-    private static RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> getProductByIdLambda;
+    private GetProductByIdTestableLambda getProductByIdLambda;
 
     private AutoCloseable autoCloseable;
-    private final Mapper<Product, ProductDto> productMapper = new ProductMapper();
+    private final Mapper<ProductWithStock, ProductDto> productMapper = new ProductMapper();
     private final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeEach
     public void init() {
         autoCloseable = MockitoAnnotations.openMocks(this);
+        getProductByIdLambda = new GetProductByIdTestableLambda(productServiceMock);
     }
 
     @AfterEach
@@ -60,16 +58,11 @@ public class GetProductByIdLambdaTest {
         autoCloseable.close();
     }
 
-    @BeforeAll
-    public static void setup() {
-        getProductByIdLambda = new GetProductByIdLambda();
-    }
-
     @Test
     void whenGetProductByIdThenReturnProduct() throws JsonProcessingException {
         // given
-        List<Product> products = MockData.getProducts();
-        Product randomProduct = products.get(ThreadLocalRandom.current().nextInt(products.size()));
+        List<ProductWithStock> products = MockData.getProducts();
+        ProductWithStock randomProduct = products.get(ThreadLocalRandom.current().nextInt(products.size()));
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         if (event.getPathParameters() == null) {
             event.setPathParameters(Map.of(PRODUCT_ID_KEY, randomProduct.getId().toString()));

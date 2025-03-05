@@ -1,7 +1,6 @@
 package ua.reed.repository;
 
-import ua.reed.dto.ProductDto;
-import ua.reed.entity.Product;
+import ua.reed.entity.ProductWithStock;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,8 +8,10 @@ import java.util.UUID;
 
 public interface ProductRepository {
 
-    List<Product> getProducts();
+    List<ProductWithStock> getProducts();
 
-    Optional<Product> getProductById(UUID productId);
+    Optional<ProductWithStock> getProductById(UUID productId);
+
+    Optional<ProductWithStock> save(ProductWithStock product);
 
 }
