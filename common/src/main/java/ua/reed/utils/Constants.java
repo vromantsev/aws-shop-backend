@@ -13,5 +13,12 @@ public final class Constants {
     public static final String STACK_ID = "AwsShopBackendStack";
     public static final String PRODUCT_TABLE_ENV_KEY = "PRODUCT_TABLE";
     public static final String STOCK_TABLE_ENV_KEY = "STOCK_TABLE";
-
+    public static final String EXISTING_IMPORT_BUCKET_ID = "EXISTING_IMPORT_BUCKET";
+    public static final String NEW_IMPORT_BUCKET_ID = "NEW_IMPORT_BUCKET";
+    public static final String IMPORT_BUCKET_NAME_KEY = "IMPORT_BUCKET_NAME";
+    public static final String IMPORT_BUCKET_NAME = "rs-school-task-5-imports";
+    public static final String CSV_FILENAME_KEY = "name";
+    public static final int DEFAULT_PRE_SIGNED_URL_DURATION = 10;
+    public static final String IMPORT_FILE_PATH = "import";
+    public static final String UPLOAD_S3_DIRECTORY = "uploaded/";
 }
