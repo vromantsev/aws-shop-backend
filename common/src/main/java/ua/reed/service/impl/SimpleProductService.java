@@ -1,9 +1,10 @@
-package ua.reed.service;
+package ua.reed.service.impl;
 
 import ua.reed.dto.ProductDto;
 import ua.reed.entity.ProductWithStock;
 import ua.reed.mapper.Mapper;
 import ua.reed.repository.ProductRepository;
+import ua.reed.service.ProductService;
 
 import java.util.List;
 import java.util.Optional;

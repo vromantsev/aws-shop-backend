@@ -18,7 +18,7 @@ public class GetProductListLambda implements RequestHandler<APIGatewayProxyReque
 
     private static final Configuration LAMBDA_CONFIGURATION = new GetProductListLambdaConfig();
 
-    protected ProductService productService = Services.create();
+    protected ProductService productService = Services.createProductService();
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent event, final Context context) {

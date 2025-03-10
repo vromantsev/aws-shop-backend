@@ -18,7 +18,7 @@ public class PutProductWithStockLambda implements RequestHandler<APIGatewayProxy
 
     private static final Configuration LAMBDA_CONFIGURATION = new PutProductWithStockLambdaConfiguration();
 
-    protected ProductService productService = Services.create();
+    protected ProductService productService = Services.createProductService();
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent event, final Context context) {
