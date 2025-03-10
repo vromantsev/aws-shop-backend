@@ -96,5 +96,6 @@
         <module>get-product-by-id-lambda</module>
         <module>put-product-with-stock-lambda</module>
         <module>import-product-file-lambda</module>
+        <module>import-file-parser-lambda</module>
     </modules>
 </project>
