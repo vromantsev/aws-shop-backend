@@ -18,7 +18,8 @@ public final class Constants {
     public static final String IMPORT_BUCKET_NAME_KEY = "IMPORT_BUCKET_NAME";
     public static final String IMPORT_BUCKET_NAME = "rs-school-task-5-imports";
     public static final String CSV_FILENAME_KEY = "name";
-    public static final int DEFAULT_PRE_SIGNED_URL_DURATION = 10;
+    public static final int DEFAULT_PRE_SIGNED_URL_DURATION_MINUTES = 10;
     public static final String IMPORT_FILE_PATH = "import";
     public static final String UPLOAD_S3_DIRECTORY = "uploaded/";
+    public static final String PARSED_S3_DIRECTORY = "parsed/";
 }

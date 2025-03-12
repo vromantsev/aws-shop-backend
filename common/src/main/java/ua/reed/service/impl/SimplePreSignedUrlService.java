@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static ua.reed.utils.Constants.DEFAULT_PRE_SIGNED_URL_DURATION;
+import static ua.reed.utils.Constants.DEFAULT_PRE_SIGNED_URL_DURATION_MINUTES;
 
 public class SimplePreSignedUrlService implements PreSignedUrlService {
 
@@ -28,7 +28,7 @@ public class SimplePreSignedUrlService implements PreSignedUrlService {
             PresignedPutObjectRequest presignedGetObjectRequest = s3Presigner.presignPutObject(
                     PutObjectPresignRequest.builder()
                             .putObjectRequest(builder -> builder.bucket(bucketName).key(fileNameWithPrefix))
-                            .signatureDuration(Duration.ofMinutes(DEFAULT_PRE_SIGNED_URL_DURATION))
+                            .signatureDuration(Duration.ofMinutes(DEFAULT_PRE_SIGNED_URL_DURATION_MINUTES))
                             .build()
             );
             LOGGER.info("Generating pre-signed URL for file: '%s', bucket: '%s'".formatted(fileNameWithPrefix, bucketName));

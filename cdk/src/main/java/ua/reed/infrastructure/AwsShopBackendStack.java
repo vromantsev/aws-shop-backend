@@ -11,6 +11,7 @@ import software.amazon.awscdk.services.apigateway.LambdaIntegration;
 import software.amazon.awscdk.services.apigateway.MethodOptions;
 import software.amazon.awscdk.services.apigateway.Resource;
 import software.amazon.awscdk.services.apigateway.RestApi;
+import software.amazon.awscdk.services.codepipeline.actions.S3Trigger;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.BillingMode;
@@ -26,14 +27,18 @@ import software.amazon.awscdk.services.s3.BlockPublicAccess;
 import software.amazon.awscdk.services.s3.Bucket;
 import software.amazon.awscdk.services.s3.BucketEncryption;
 import software.amazon.awscdk.services.s3.CorsRule;
+import software.amazon.awscdk.services.s3.EventType;
 import software.amazon.awscdk.services.s3.HttpMethods;
 import software.amazon.awscdk.services.s3.IBucket;
+import software.amazon.awscdk.services.s3.NotificationKeyFilter;
+import software.amazon.awscdk.services.s3.notifications.LambdaDestination;
 import software.constructs.Construct;
 import ua.reed.config.Configuration;
 import ua.reed.entity.Product;
 import ua.reed.entity.Stock;
 import ua.reed.lambda.GetProductByIdLambda;
 import ua.reed.lambda.GetProductListLambda;
+import ua.reed.lambda.ImportFileParserLambda;
 import ua.reed.lambda.ImportProductFileLambda;
 import ua.reed.lambda.PutProductWithStockLambda;
 import ua.reed.utils.Constants;
@@ -133,9 +138,11 @@ public class AwsShopBackendStack extends Stack {
                 .code(Code.fromAsset(Paths.get(importProductFileLambdaConfiguration.getLambdaJarFilePath()).toFile().getPath()))
                 .handler(importProductFileLambdaConfiguration.getHandlerString())
                 .memorySize(512)
-                .environment(Map.of(
-                        Constants.IMPORT_BUCKET_NAME_KEY, importsBucket.getBucketName()
-                ))
+                .environment(
+                        Map.of(
+                                Constants.IMPORT_BUCKET_NAME_KEY, importsBucket.getBucketName()
+                        )
+                )
                 .build();
 
         Role lambdaRole = Role.Builder.create(this, "RsAppLambdaExecutionRole")
@@ -150,6 +157,30 @@ public class AwsShopBackendStack extends Stack {
 
         // permissions for S3 bucket
         importsBucket.grantReadWrite(lambdaRole);
+
+        // importFileParserLambda
+        Configuration importFileParserLambdaConfig = ImportFileParserLambda.getLambdaConfiguration();
+        Function importFileParserLambda = Function.Builder.create(this, importFileParserLambdaConfig.getLambdaName())
+                .runtime(Runtime.JAVA_21)
+                .timeout(Duration.minutes(1))
+                .code(Code.fromAsset(Paths.get(importFileParserLambdaConfig.getLambdaJarFilePath()).toFile().getPath()))
+                .handler(importFileParserLambdaConfig.getHandlerString())
+                .memorySize(512)
+                .environment(
+                        Map.of(
+                                Constants.IMPORT_BUCKET_NAME_KEY, importsBucket.getBucketName()
+                        )
+                )
+                .build();
+
+        // trigger importFileParserLambda only if a new object was stored in uploaded/ folder
+        importsBucket.addEventNotification(
+                EventType.OBJECT_CREATED,
+                new LambdaDestination(importFileParserLambda),
+                NotificationKeyFilter.builder()
+                        .prefix(Constants.UPLOAD_S3_DIRECTORY)
+                        .build()
+        );
 
         // API Gateway
         RestApi restApi = RestApi.Builder.create(this, "ProductsRestApi")
