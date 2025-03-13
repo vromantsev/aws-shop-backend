@@ -12,12 +12,14 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <aws-lambda-java-core.version>1.2.3</aws-lambda-java-core.version>
-        <aws-lambda-java-events.version>3.11.5</aws-lambda-java-events.version>
+        <aws-lambda-java-events.version>3.15.0</aws-lambda-java-events.version>
         <aws-lambda-java-log4j2.version>1.6.0</aws-lambda-java-log4j2.version>
         <dynamodb.version>2.25.35</dynamodb.version>
-        <jackson.version>2.17.1</jackson.version>
-        <junit-jupiter.version>5.10.</junit-jupiter.version>
+        <jackson.version>2.18.3</jackson.version>
+        <junit-jupiter.version>5.10.2</junit-jupiter.version>
         <mockito-junit-jupiter.version>5.11.0</mockito-junit-jupiter.version>
+        <s3.version>2.25.35</s3.version>
+        <commons-csv.version>1.13.0</commons-csv.version>
     </properties>
 
     <dependencies>
@@ -42,6 +44,11 @@
             <version>${dynamodb.version}</version>
         </dependency>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${s3.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
@@ -57,9 +64,14 @@
             <version>${jackson.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>${commons-csv.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${junit-jupiter.version}2</version>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -69,6 +81,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -89,5 +102,7 @@
         <module>get-product-list-lambda</module>
         <module>get-product-by-id-lambda</module>
         <module>put-product-with-stock-lambda</module>
+        <module>import-product-file-lambda</module>
+        <module>import-file-parser-lambda</module>
     </modules>
 </project>

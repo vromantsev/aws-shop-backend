@@ -22,7 +22,7 @@ public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyReque
 
     private static final String PRODUCT_ID_KEY = "productId";
 
-    protected ProductService productService = Services.create();
+    protected ProductService productService = Services.createProductService();
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent event, final Context context) {

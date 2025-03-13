@@ -6,26 +6,45 @@ import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.apigateway.Cors;
 import software.amazon.awscdk.services.apigateway.CorsOptions;
+import software.amazon.awscdk.services.apigateway.IResource;
 import software.amazon.awscdk.services.apigateway.LambdaIntegration;
+import software.amazon.awscdk.services.apigateway.MethodOptions;
 import software.amazon.awscdk.services.apigateway.Resource;
 import software.amazon.awscdk.services.apigateway.RestApi;
+import software.amazon.awscdk.services.codepipeline.actions.S3Trigger;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.BillingMode;
 import software.amazon.awscdk.services.dynamodb.ITable;
 import software.amazon.awscdk.services.dynamodb.Table;
+import software.amazon.awscdk.services.iam.ManagedPolicy;
+import software.amazon.awscdk.services.iam.Role;
+import software.amazon.awscdk.services.iam.ServicePrincipal;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.Runtime;
+import software.amazon.awscdk.services.s3.BlockPublicAccess;
+import software.amazon.awscdk.services.s3.Bucket;
+import software.amazon.awscdk.services.s3.BucketEncryption;
+import software.amazon.awscdk.services.s3.CorsRule;
+import software.amazon.awscdk.services.s3.EventType;
+import software.amazon.awscdk.services.s3.HttpMethods;
+import software.amazon.awscdk.services.s3.IBucket;
+import software.amazon.awscdk.services.s3.NotificationKeyFilter;
+import software.amazon.awscdk.services.s3.notifications.LambdaDestination;
 import software.constructs.Construct;
 import ua.reed.config.Configuration;
 import ua.reed.entity.Product;
 import ua.reed.entity.Stock;
 import ua.reed.lambda.GetProductByIdLambda;
 import ua.reed.lambda.GetProductListLambda;
+import ua.reed.lambda.ImportFileParserLambda;
+import ua.reed.lambda.ImportProductFileLambda;
 import ua.reed.lambda.PutProductWithStockLambda;
+import ua.reed.utils.Constants;
 
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 
 import static ua.reed.utils.Constants.PRODUCTS_TABLE_EXISTS_ID;
@@ -41,6 +60,9 @@ public class AwsShopBackendStack extends Stack {
 
     public AwsShopBackendStack(final Construct scope, final String id, final StackProps props) {
         super(scope, id, props);
+
+        // S3 imports bucket
+        IBucket importsBucket = createBucketIfNotExists();
 
         // DynamoDB products table
         ITable productsTable = createTableIfNotExists(PRODUCTS_TABLE_EXISTS_ID, PRODUCTS_TABLE_ID, PRODUCTS_TABLE_NAME, Product.ID_FIELD);
@@ -108,6 +130,58 @@ public class AwsShopBackendStack extends Stack {
         productsTable.grantReadWriteData(putProductWithStockLambda);
         stocksTable.grantReadWriteData(putProductWithStockLambda);
 
+        // importProductFileLambda
+        Configuration importProductFileLambdaConfiguration = ImportProductFileLambda.getLambdaConfiguration();
+        Function importProductFileLambda = Function.Builder.create(this, importProductFileLambdaConfiguration.getLambdaName())
+                .runtime(Runtime.JAVA_21)
+                .timeout(Duration.seconds(30))
+                .code(Code.fromAsset(Paths.get(importProductFileLambdaConfiguration.getLambdaJarFilePath()).toFile().getPath()))
+                .handler(importProductFileLambdaConfiguration.getHandlerString())
+                .memorySize(512)
+                .environment(
+                        Map.of(
+                                Constants.IMPORT_BUCKET_NAME_KEY, importsBucket.getBucketName()
+                        )
+                )
+                .build();
+
+        Role lambdaRole = Role.Builder.create(this, "RsAppLambdaExecutionRole")
+                .assumedBy(ServicePrincipal.Builder.create("lambda.amazonaws.com").build())
+                .managedPolicies(
+                        List.of(
+                                ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
+                                ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess")
+                        )
+                )
+                .build();
+
+        // permissions for S3 bucket
+        importsBucket.grantReadWrite(lambdaRole);
+
+        // importFileParserLambda
+        Configuration importFileParserLambdaConfig = ImportFileParserLambda.getLambdaConfiguration();
+        Function importFileParserLambda = Function.Builder.create(this, importFileParserLambdaConfig.getLambdaName())
+                .runtime(Runtime.JAVA_21)
+                .timeout(Duration.minutes(1))
+                .code(Code.fromAsset(Paths.get(importFileParserLambdaConfig.getLambdaJarFilePath()).toFile().getPath()))
+                .handler(importFileParserLambdaConfig.getHandlerString())
+                .memorySize(512)
+                .environment(
+                        Map.of(
+                                Constants.IMPORT_BUCKET_NAME_KEY, importsBucket.getBucketName()
+                        )
+                )
+                .build();
+
+        // trigger importFileParserLambda only if a new object was stored in uploaded/ folder
+        importsBucket.addEventNotification(
+                EventType.OBJECT_CREATED,
+                new LambdaDestination(importFileParserLambda),
+                NotificationKeyFilter.builder()
+                        .prefix(Constants.UPLOAD_S3_DIRECTORY)
+                        .build()
+        );
+
         // API Gateway
         RestApi restApi = RestApi.Builder.create(this, "ProductsRestApi")
                 .restApiName("ProductsApi")
@@ -129,8 +203,22 @@ public class AwsShopBackendStack extends Stack {
                 .proxy(true)
                 .build();
 
+        LambdaIntegration importProductFileLambdaIntegration = LambdaIntegration.Builder.create(importProductFileLambda)
+                .proxy(true)
+                .build();
+
         // /products
-        Resource products = restApi.getRoot().addResource(PRODUCTS_TABLE_NAME);
+        IResource restApiRoot = restApi.getRoot();
+        Resource importProductFile = restApiRoot.addResource(Constants.IMPORT_FILE_PATH);
+        importProductFile.addMethod(
+                "GET",
+                importProductFileLambdaIntegration,
+                MethodOptions.builder()
+                        .requestParameters(Map.of("method.request.querystring.name", true))
+                        .build()
+        );
+
+        Resource products = restApiRoot.addResource(PRODUCTS_TABLE_NAME);
         products.addMethod("GET", productsLambdaIntegration);
         products.addMethod("POST", putProductLambdaIntegration);
 
@@ -141,6 +229,39 @@ public class AwsShopBackendStack extends Stack {
                 .proxy(true)
                 .build();
         productId.addMethod("GET", productByIdLambda);
+    }
+
+    private IBucket createBucketIfNotExists() {
+        try {
+            return Bucket.fromBucketName(this, Constants.EXISTING_IMPORT_BUCKET_ID, Constants.IMPORT_BUCKET_NAME);
+        } catch (Exception ex) {
+            return Bucket.Builder.create(this, Constants.NEW_IMPORT_BUCKET_ID)
+                    .bucketName(Constants.IMPORT_BUCKET_NAME)
+                    .versioned(true)
+                    .encryption(BucketEncryption.S3_MANAGED)
+                    .cors(List.of(
+                            CorsRule.builder()
+                                    .allowedHeaders(List.of("*"))
+                                    .allowedMethods(
+                                            List.of(
+                                                    HttpMethods.POST,
+                                                    HttpMethods.GET,
+                                                    HttpMethods.PUT,
+                                                    HttpMethods.DELETE,
+                                                    HttpMethods.HEAD
+                                            )
+                                    )
+                                    .allowedOrigins(List.of("*"))
+                                    .maxAge(Duration.parse("5").toMinutes())
+                                    .build()
+                    ))
+                    .blockPublicAccess(
+                            BlockPublicAccess.Builder.create()
+                                    .blockPublicPolicy(false)
+                                    .build()
+                    )
+                    .build();
+        }
     }
 
     private ITable createTableIfNotExists(final String tableExistsId,
