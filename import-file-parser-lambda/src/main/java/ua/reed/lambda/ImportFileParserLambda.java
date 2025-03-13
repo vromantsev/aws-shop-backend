@@ -9,11 +9,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ua.reed.config.Configuration;
 import ua.reed.config.JacksonConfig;
+import ua.reed.dto.CopyS3ObjectResponse;
+import ua.reed.entity.ProductWithStock;
 import ua.reed.mapper.Mapper;
 import ua.reed.mapper.S3RecordsMapper;
 import ua.reed.service.CsvProductParserService;
 import ua.reed.service.S3ObjectService;
 import ua.reed.service.Services;
+import ua.reed.utils.Constants;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,7 +29,7 @@ public class ImportFileParserLambda implements RequestStreamHandler {
 
     private static final Configuration LAMBDA_CONFIGURATION = new ImportFileParserLambdaConfig();
 
-    private final ObjectMapper objectMapper = JacksonConfig.getObjectMapper();
+    protected ObjectMapper objectMapper = JacksonConfig.getObjectMapper();
     protected Mapper<JsonNode, List<S3EventNotification.S3EventNotificationRecord>> s3RecordsMapper = S3RecordsMapper.getInstance();
     protected S3ObjectService s3ObjectService = Services.createS3ObjectService();
     protected CsvProductParserService csvProductParserService = Services.createCsvProductParserService();
@@ -41,8 +44,14 @@ public class ImportFileParserLambda implements RequestStreamHandler {
                 String bucketName = s3Record.getS3().getBucket().getName();
                 String key = s3Record.getS3().getObject().getUrlDecodedKey();
                 s3ObjectService.getObject(bucketName, key)
-                        .ifPresent(csv -> csvProductParserService.fromCsv(csv)
-                                .forEach(p -> LOGGER.info("Parsed csv record: %s".formatted(p)))
+                        .ifPresent(csv -> {
+                                    List<ProductWithStock> products = csvProductParserService.fromCsv(csv);
+                                    products.forEach(p -> LOGGER.info("Parsed csv record: %s".formatted(p)));
+                                    CopyS3ObjectResponse copyResult = s3ObjectService.copyObject(bucketName, key, key.replace(Constants.UPLOAD_S3_DIRECTORY, Constants.PARSED_S3_DIRECTORY));
+                                    if (copyResult.isSuccessful()) {
+                                        s3ObjectService.deleteObject(bucketName, key);
+                                    }
+                                }
                         );
             });
         } catch (Exception ex) {
