@@ -7,7 +7,7 @@ import com.amazonaws.services.lambda.runtime.events.models.s3.S3EventNotificatio
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ua.reed.config.Configuration;
+import ua.reed.config.LambdaConfiguration;
 import ua.reed.config.JacksonConfig;
 import ua.reed.dto.CopyS3ObjectResponse;
 import ua.reed.entity.ProductWithStock;
@@ -27,7 +27,7 @@ public class ImportFileParserLambda implements RequestStreamHandler {
 
     private static final Logger LOGGER = Logger.getLogger(ImportFileParserLambda.class.getSimpleName());
 
-    private static final Configuration LAMBDA_CONFIGURATION = new ImportFileParserLambdaConfig();
+    private static final LambdaConfiguration LAMBDA_CONFIGURATION = new ImportFileParserLambdaConfig();
 
     protected ObjectMapper objectMapper = JacksonConfig.getObjectMapper();
     protected Mapper<JsonNode, List<S3EventNotification.S3EventNotificationRecord>> s3RecordsMapper = S3RecordsMapper.getInstance();
@@ -59,11 +59,11 @@ public class ImportFileParserLambda implements RequestStreamHandler {
         }
     }
 
-    public static Configuration getLambdaConfiguration() {
+    public static LambdaConfiguration getLambdaConfiguration() {
         return LAMBDA_CONFIGURATION;
     }
 
-    private static class ImportFileParserLambdaConfig implements Configuration {
+    private static class ImportFileParserLambdaConfig implements LambdaConfiguration {
 
         @Override
         public String getLambdaJarFilePath() {

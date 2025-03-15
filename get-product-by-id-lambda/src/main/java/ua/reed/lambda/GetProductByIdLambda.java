@@ -6,7 +6,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
-import ua.reed.config.Configuration;
+import ua.reed.config.LambdaConfiguration;
 import ua.reed.dto.ProductDto;
 import ua.reed.service.ProductService;
 import ua.reed.service.Services;
@@ -18,7 +18,7 @@ import java.util.UUID;
 
 public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final Configuration LAMBDA_CONFIGURATION = new GetProductByIdLambdaConfig();
+    private static final LambdaConfiguration LAMBDA_CONFIGURATION = new GetProductByIdLambdaConfig();
 
     private static final String PRODUCT_ID_KEY = "productId";
 
@@ -44,11 +44,11 @@ public class GetProductByIdLambda implements RequestHandler<APIGatewayProxyReque
         }
     }
 
-    public static Configuration getLambdaConfiguration() {
+    public static LambdaConfiguration getLambdaConfiguration() {
         return LAMBDA_CONFIGURATION;
     }
 
-    private static class GetProductByIdLambdaConfig implements Configuration {
+    private static class GetProductByIdLambdaConfig implements LambdaConfiguration {
 
         @Override
         public String getLambdaJarFilePath() {

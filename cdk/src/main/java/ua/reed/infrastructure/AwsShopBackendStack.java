@@ -11,7 +11,6 @@ import software.amazon.awscdk.services.apigateway.LambdaIntegration;
 import software.amazon.awscdk.services.apigateway.MethodOptions;
 import software.amazon.awscdk.services.apigateway.Resource;
 import software.amazon.awscdk.services.apigateway.RestApi;
-import software.amazon.awscdk.services.codepipeline.actions.S3Trigger;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.BillingMode;
@@ -33,7 +32,7 @@ import software.amazon.awscdk.services.s3.IBucket;
 import software.amazon.awscdk.services.s3.NotificationKeyFilter;
 import software.amazon.awscdk.services.s3.notifications.LambdaDestination;
 import software.constructs.Construct;
-import ua.reed.config.Configuration;
+import ua.reed.config.LambdaConfiguration;
 import ua.reed.entity.Product;
 import ua.reed.entity.Stock;
 import ua.reed.lambda.GetProductByIdLambda;
@@ -71,7 +70,7 @@ public class AwsShopBackendStack extends Stack {
         ITable stocksTable = createTableIfNotExists(STOCKS_TABLE_EXISTS_ID, STOCKS_TABLE_ID, STOCKS_TABLE_NAME, Stock.ID_FIELD);
 
         // GetProductListLambda
-        Configuration getProductListLambdaConfiguration = GetProductListLambda.getLambdaConfiguration();
+        LambdaConfiguration getProductListLambdaConfiguration = GetProductListLambda.getLambdaConfiguration();
         Function getProductListLambda = Function.Builder.create(this, getProductListLambdaConfiguration.getLambdaName())
                 .runtime(Runtime.JAVA_21)
                 .timeout(Duration.seconds(30))
@@ -91,7 +90,7 @@ public class AwsShopBackendStack extends Stack {
         stocksTable.grantReadWriteData(getProductListLambda);
 
         // GetProductByIdLambda
-        Configuration getProductByIdLambdaConfiguration = GetProductByIdLambda.getLambdaConfiguration();
+        LambdaConfiguration getProductByIdLambdaConfiguration = GetProductByIdLambda.getLambdaConfiguration();
         Function getProductByIdLambda = Function.Builder.create(this, getProductByIdLambdaConfiguration.getLambdaName())
                 .runtime(Runtime.JAVA_21)
                 .timeout(Duration.seconds(30))
@@ -111,7 +110,7 @@ public class AwsShopBackendStack extends Stack {
         stocksTable.grantReadWriteData(getProductByIdLambda);
 
         // PutProductWithStockLambda
-        Configuration putProductWithStockLambdaConfiguration = PutProductWithStockLambda.getLambdaConfiguration();
+        LambdaConfiguration putProductWithStockLambdaConfiguration = PutProductWithStockLambda.getLambdaConfiguration();
         Function putProductWithStockLambda = Function.Builder.create(this, putProductWithStockLambdaConfiguration.getLambdaName())
                 .runtime(Runtime.JAVA_21)
                 .timeout(Duration.seconds(30))
@@ -131,7 +130,7 @@ public class AwsShopBackendStack extends Stack {
         stocksTable.grantReadWriteData(putProductWithStockLambda);
 
         // importProductFileLambda
-        Configuration importProductFileLambdaConfiguration = ImportProductFileLambda.getLambdaConfiguration();
+        LambdaConfiguration importProductFileLambdaConfiguration = ImportProductFileLambda.getLambdaConfiguration();
         Function importProductFileLambda = Function.Builder.create(this, importProductFileLambdaConfiguration.getLambdaName())
                 .runtime(Runtime.JAVA_21)
                 .timeout(Duration.seconds(30))
@@ -159,7 +158,7 @@ public class AwsShopBackendStack extends Stack {
         importsBucket.grantReadWrite(lambdaRole);
 
         // importFileParserLambda
-        Configuration importFileParserLambdaConfig = ImportFileParserLambda.getLambdaConfiguration();
+        LambdaConfiguration importFileParserLambdaConfig = ImportFileParserLambda.getLambdaConfiguration();
         Function importFileParserLambda = Function.Builder.create(this, importFileParserLambdaConfig.getLambdaName())
                 .runtime(Runtime.JAVA_21)
                 .timeout(Duration.minutes(1))
