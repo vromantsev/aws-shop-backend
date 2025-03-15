@@ -104,5 +104,6 @@
         <module>put-product-with-stock-lambda</module>
         <module>import-product-file-lambda</module>
         <module>import-file-parser-lambda</module>
+        <module>catalog-batch-process-lambda</module>
     </modules>
 </project>
