@@ -1,0 +1,16 @@
+.idea/
+target/
+*.iml
+*.log
+
+.classpath.txt
+.classpath
+.project
+.settings
+.vscode
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+dependency-reduced-pom.xml
