@@ -3,10 +3,12 @@ package ua.reed.lambda;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import ua.reed.config.LambdaConfiguration;
 import ua.reed.dto.ProductDto;
 import ua.reed.service.ProductService;
 import ua.reed.service.Services;
+import ua.reed.service.SnsService;
 import ua.reed.utils.JsonUtils;
 
 import java.util.logging.Logger;
@@ -18,6 +20,7 @@ public class CatalogBatchProcessLambda implements RequestHandler<SQSEvent, Void>
     private static final LambdaConfiguration LAMBDA_CONFIGURATION = new CatalogBatchProcessLambdaConfig();
 
     protected ProductService productService = Services.createProductService();
+    protected SnsService snsService = Services.createSnsService();
 
     @Override
     public Void handleRequest(final SQSEvent event, final Context context) {
@@ -27,8 +30,9 @@ public class CatalogBatchProcessLambda implements RequestHandler<SQSEvent, Void>
                 LOGGER.info("Received payload: '%s'".formatted(body));
                 productService.save(JsonUtils.fromJson(body, ProductDto.class));
             });
+            snsService.sendEmailNotification();
         } catch (Exception ex) {
-            LOGGER.severe(ex.getMessage());
+            LOGGER.severe(ExceptionUtils.getStackTrace(ex));
         }
         return null;
     }

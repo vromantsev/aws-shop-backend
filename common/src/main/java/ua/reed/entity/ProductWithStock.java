@@ -41,7 +41,7 @@ public class ProductWithStock extends Product {
         return new ProductWithStock(
                 UUID.fromString(attributes.get(Product.ID_FIELD).s()),
                 attributes.get(DESCRIPTION_FIELD).s(),
-                BigDecimal.valueOf(Long.parseLong(attributes.get(PRICE_FIELD).n())),
+                BigDecimal.valueOf(Double.parseDouble(attributes.get(PRICE_FIELD).n())),
                 attributes.get(TITLE_FIELD).s(),
                 attributes.containsKey(COUNT_FIELD) ? Integer.parseInt(attributes.get(COUNT_FIELD).n()) : 0
         );

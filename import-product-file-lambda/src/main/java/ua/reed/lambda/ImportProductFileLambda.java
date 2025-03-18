@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import ua.reed.config.LambdaConfiguration;
 import ua.reed.service.S3ObjectService;
 import ua.reed.service.Services;
@@ -36,7 +37,7 @@ public class ImportProductFileLambda implements RequestHandler<APIGatewayProxyRe
             }
             return LambdaPayloadUtils.createResponse(400, "Request parameter [%s] is mandatory!".formatted(Constants.CSV_FILENAME_KEY));
         } catch (Exception ex) {
-            logger.log(ex.getMessage(), LogLevel.ERROR);
+            logger.log(ExceptionUtils.getStackTrace(ex));
             return LambdaPayloadUtils.createDefaultErrorResponse();
         }
     }

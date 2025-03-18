@@ -88,7 +88,7 @@ public class SimpleSqsService implements SqsService {
         private static SendMessageBatchRequestEntry fromProduct(final ProductWithStock product) {
             return SendMessageBatchRequestEntry.builder()
                     .id(UUID.randomUUID().toString())
-                    .messageBody(JsonUtils.createBody(product))
+                    .messageBody(JsonUtils.toJson(product))
                     .build();
         }
     }

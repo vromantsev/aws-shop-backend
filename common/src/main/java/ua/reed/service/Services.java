@@ -3,6 +3,7 @@ package ua.reed.service;
 import ua.reed.config.DynamoDbConfig;
 import ua.reed.config.S3Config;
 import ua.reed.config.S3PreSignerConfiguration;
+import ua.reed.config.SnsConfig;
 import ua.reed.config.SqsConfig;
 import ua.reed.dto.ProductDto;
 import ua.reed.entity.ProductWithStock;
@@ -15,6 +16,7 @@ import ua.reed.service.impl.SimpleCsvProductParserService;
 import ua.reed.service.impl.SimplePreSignedUrlService;
 import ua.reed.service.impl.SimpleProductService;
 import ua.reed.service.impl.SimpleS3ObjectService;
+import ua.reed.service.impl.SimpleSnsService;
 import ua.reed.service.impl.SimpleSqsService;
 
 public final class Services {
@@ -41,5 +43,9 @@ public final class Services {
 
     public static SqsService createSqsService() {
         return new SimpleSqsService(SqsConfig.getSqsClient());
+    }
+
+    public static SnsService createSnsService() {
+        return new SimpleSnsService(SnsConfig.getSnsClient());
     }
 }

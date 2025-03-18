@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import com.amazonaws.services.lambda.runtime.events.models.s3.S3EventNotification;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import ua.reed.config.JacksonConfig;
 import ua.reed.config.LambdaConfiguration;
 import ua.reed.dto.CopyS3ObjectResponse;
@@ -55,7 +56,7 @@ public class ImportFileParserLambda implements RequestStreamHandler {
                         );
             });
         } catch (Exception ex) {
-            LOGGER.severe(ex.getMessage());
+            LOGGER.severe(ExceptionUtils.getStackTrace(ex));
         }
     }
 

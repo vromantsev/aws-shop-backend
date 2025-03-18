@@ -25,5 +25,8 @@ public final class Constants {
     public static final String CATALOG_ITEMS_QUEUE_ID = "catalogItemsQueueId";
     public static final String CATALOG_ITEMS_QUEUE_NAME = "catalog-items-queue";
     public static final String CATALOG_ITEMS_QUEUE_KEY = "CATALOG_ITEMS_QUEUE_KEY";
+    public static final String SNS_EMAIL_TOPIC_NAME = "rs-app-email-topic-v1";
+    public static final String SNS_EMAIL_TOPIC_ID = "CreateSnsEmailTopicId";
+    public static final String SNS_EMAIL_SIBSCRIPTION_ID = "CreateEmailTopicSubscriptionId";
 
 }

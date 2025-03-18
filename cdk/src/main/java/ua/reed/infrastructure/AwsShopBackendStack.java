@@ -16,8 +16,6 @@ import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.BillingMode;
 import software.amazon.awscdk.services.dynamodb.ITable;
 import software.amazon.awscdk.services.dynamodb.Table;
-import software.amazon.awscdk.services.ec2.Action;
-import software.amazon.awscdk.services.iam.ArnPrincipal;
 import software.amazon.awscdk.services.iam.Effect;
 import software.amazon.awscdk.services.iam.ManagedPolicy;
 import software.amazon.awscdk.services.iam.PolicyStatement;
@@ -37,6 +35,9 @@ import software.amazon.awscdk.services.s3.HttpMethods;
 import software.amazon.awscdk.services.s3.IBucket;
 import software.amazon.awscdk.services.s3.NotificationKeyFilter;
 import software.amazon.awscdk.services.s3.notifications.LambdaDestination;
+import software.amazon.awscdk.services.sns.Subscription;
+import software.amazon.awscdk.services.sns.SubscriptionProtocol;
+import software.amazon.awscdk.services.sns.Topic;
 import software.amazon.awscdk.services.sqs.Queue;
 import software.constructs.Construct;
 import ua.reed.config.LambdaConfiguration;
@@ -248,6 +249,8 @@ public class AwsShopBackendStack extends Stack {
         importFileParserLambda.addToRolePolicy(lambdasCanReadWriteToSqsQueue);
         catalogBatchProcessLambda.addToRolePolicy(lambdasCanReadWriteToSqsQueue);
 
+        createSnsTopicAndSubscription(catalogBatchProcessLambda);
+
         // API Gateway
         RestApi restApi = RestApi.Builder.create(this, "ProductsRestApi")
                 .restApiName("ProductsApi")
@@ -295,6 +298,33 @@ public class AwsShopBackendStack extends Stack {
                 .proxy(true)
                 .build();
         productId.addMethod("GET", productByIdLambda);
+    }
+
+    private void createSnsTopicAndSubscription(final Function lambdaFunction) {
+            // define a topic
+            Topic topic = Topic.Builder.create(this, Constants.SNS_EMAIL_TOPIC_ID)
+                    .topicName(Constants.SNS_EMAIL_TOPIC_NAME)
+                    .build();
+
+            // define email subscription
+            Subscription.Builder.create(this, Constants.SNS_EMAIL_SIBSCRIPTION_ID)
+                    .topic(topic)
+                    .protocol(SubscriptionProtocol.EMAIL)
+                    .endpoint("vladyslav.romantsev@gmail.com")
+                    .build();
+
+            // SNS permissions
+            PolicyStatement publishPermissions = PolicyStatement.Builder.create()
+                    .effect(Effect.ALLOW)
+                    .actions(List.of("sns:Publish", "sns:ListTopics"))
+                    .resources(List.of("*"))
+                    .build();
+
+            // assign permissions to catalogBatchProcessLambda
+            lambdaFunction.addToRolePolicy(publishPermissions);
+
+            // catalogBatchProcessLambda is allowed to publish to this topic
+            topic.grantPublish(lambdaFunction);
     }
 
     private IBucket createBucketIfNotExists() {

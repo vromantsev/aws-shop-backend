@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import ua.reed.config.LambdaConfiguration;
 import ua.reed.dto.ProductDto;
 import ua.reed.service.ProductService;
@@ -33,7 +34,7 @@ public class PutProductWithStockLambda implements RequestHandler<APIGatewayProxy
             return newProduct.map(dto -> LambdaPayloadUtils.createResponse(201, dto))
                     .orElseGet(() -> LambdaPayloadUtils.createErrorResponse("Failed to create a product with stock %s".formatted(productDto.get())));
         } catch (Exception ex) {
-            logger.log(ex.getMessage(), LogLevel.ERROR);
+            logger.log(ExceptionUtils.getStackTrace(ex));
             return LambdaPayloadUtils.createDefaultErrorResponse();
         }
     }

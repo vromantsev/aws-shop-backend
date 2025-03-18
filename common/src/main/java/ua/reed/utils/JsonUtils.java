@@ -10,7 +10,7 @@ public final class JsonUtils {
 
     private JsonUtils() {}
 
-    public static <T> String createBody(T body) {
+    public static <T> String toJson(T body) {
         try {
             return MAPPER.writeValueAsString(body);
         } catch (JsonProcessingException e) {

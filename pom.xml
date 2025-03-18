@@ -21,6 +21,8 @@
         <s3.version>2.25.35</s3.version>
         <commons-csv.version>1.13.0</commons-csv.version>
         <sqs.version>2.25.35</sqs.version>
+        <commons-lang3.version>3.17.0</commons-lang3.version>
+        <sns.version>2.25.35</sns.version>
     </properties>
 
     <dependencies>
@@ -55,6 +57,11 @@
             <version>${sqs.version}</version>
         </dependency>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sns</artifactId>
+            <version>${sns.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
@@ -73,6 +80,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
             <version>${commons-csv.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
