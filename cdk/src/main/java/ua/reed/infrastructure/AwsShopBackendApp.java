@@ -9,7 +9,7 @@ import static ua.reed.utils.Constants.STACK_ID;
 public class AwsShopBackendApp {
 
     private static final String AWS_REGION = "eu-north-1";
-    private static final String AWS_ACCOUNT_ID = "";
+    private static final String AWS_ACCOUNT_ID = "782446161996";
 
     public static void main(final String[] args) {
         App app = new App();

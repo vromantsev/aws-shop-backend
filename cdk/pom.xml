@@ -23,6 +23,7 @@
         <put-product-with-stock-lambda.version>1.0.0</put-product-with-stock-lambda.version>
         <import-product-file-lambda.version>1.0.0</import-product-file-lambda.version>
         <import-file-parser-lambda.version>1.0.0</import-file-parser-lambda.version>
+        <catalog-batch-process-lambda.version>1.0.0</catalog-batch-process-lambda.version>
     </properties>
 
     <dependencies>
@@ -37,6 +38,7 @@
             <artifactId>constructs</artifactId>
             <version>${constructs.version}</version>
         </dependency>
+        <!-- Executable modules -->
         <dependency>
             <groupId>ua.reed</groupId>
             <artifactId>get-product-list-lambda</artifactId>
@@ -61,6 +63,11 @@
             <groupId>ua.reed</groupId>
             <artifactId>import-file-parser-lambda</artifactId>
             <version>${import-file-parser-lambda.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ua.reed</groupId>
+            <artifactId>catalog-batch-process-lambda</artifactId>
+            <version>${catalog-batch-process-lambda.version}</version>
         </dependency>
     </dependencies>
 

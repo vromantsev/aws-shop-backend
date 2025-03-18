@@ -20,6 +20,7 @@
         <mockito-junit-jupiter.version>5.11.0</mockito-junit-jupiter.version>
         <s3.version>2.25.35</s3.version>
         <commons-csv.version>1.13.0</commons-csv.version>
+        <sqs.version>2.25.35</sqs.version>
     </properties>
 
     <dependencies>
@@ -47,6 +48,11 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
             <version>${s3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sqs</artifactId>
+            <version>${sqs.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
