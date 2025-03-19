@@ -11,6 +11,7 @@ import ua.reed.service.Services;
 import ua.reed.service.SnsService;
 import ua.reed.utils.JsonUtils;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 public class CatalogBatchProcessLambda implements RequestHandler<SQSEvent, Void> {
@@ -25,12 +26,18 @@ public class CatalogBatchProcessLambda implements RequestHandler<SQSEvent, Void>
     @Override
     public Void handleRequest(final SQSEvent event, final Context context) {
         try {
+            AtomicBoolean isAnyProductSaved = new AtomicBoolean(false);
             event.getRecords().forEach(m -> {
                 String body = m.getBody();
                 LOGGER.info("Received payload: '%s'".formatted(body));
-                productService.save(JsonUtils.fromJson(body, ProductDto.class));
+                productService.save(JsonUtils.fromJson(body, ProductDto.class))
+                        .ifPresent(p -> isAnyProductSaved.compareAndSet(false, true));
             });
-            snsService.sendEmailNotification();
+            if (isAnyProductSaved.get()) {
+                snsService.sendEmailNotification();
+            } else {
+                LOGGER.warning("No products have been saved. Email notification won't be sent.");
+            }
         } catch (Exception ex) {
             LOGGER.severe(ExceptionUtils.getStackTrace(ex));
         }
