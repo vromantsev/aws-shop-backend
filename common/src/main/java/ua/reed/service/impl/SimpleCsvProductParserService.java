@@ -42,7 +42,7 @@ public class SimpleCsvProductParserService implements CsvProductParserService {
 
     private String getNotEmptyColumnValue(final CSVRecord record, final String columnName) {
         String value = record.get(columnName);
-        if (value.isEmpty()) {
+        if (value == null || value.isEmpty()) {
             value = record.get(columnName.substring(0, 1).toUpperCase() + columnName.substring(1));
         }
         return value;
