@@ -2,6 +2,7 @@ package ua.reed.service.impl;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import ua.reed.entity.Product;
 import ua.reed.entity.ProductWithStock;
 import ua.reed.entity.Stock;
@@ -27,15 +28,23 @@ public class SimpleCsvProductParserService implements CsvProductParserService {
             return csvParser.stream()
                     .map(r -> new ProductWithStock(
                                     null,
-                                    r.get(Product.DESCRIPTION_FIELD),
-                                    BigDecimal.valueOf(Double.parseDouble(r.get(Product.PRICE_FIELD))),
-                                    r.get(Product.TITLE_FIELD),
-                                    Integer.parseInt(r.get(Stock.COUNT_FIELD))
+                                    getNotEmptyColumnValue(r, Product.DESCRIPTION_FIELD),
+                                    BigDecimal.valueOf(Double.parseDouble(getNotEmptyColumnValue(r, Product.PRICE_FIELD))),
+                                    getNotEmptyColumnValue(r, Product.TITLE_FIELD),
+                                    Integer.parseInt(getNotEmptyColumnValue(r, Stock.COUNT_FIELD))
                             )
                     ).toList();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, e, () -> "Failed to parse a csv file");
             return Collections.emptyList();
         }
+    }
+
+    private String getNotEmptyColumnValue(final CSVRecord record, final String columnName) {
+        String value = record.get(columnName);
+        if (value == null || value.isEmpty()) {
+            value = record.get(columnName.substring(0, 1).toUpperCase() + columnName.substring(1));
+        }
+        return value;
     }
 }

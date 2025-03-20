@@ -6,7 +6,8 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
-import ua.reed.config.Configuration;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import ua.reed.config.LambdaConfiguration;
 import ua.reed.dto.ProductDto;
 import ua.reed.service.ProductService;
 import ua.reed.service.Services;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class GetProductListLambda implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final Configuration LAMBDA_CONFIGURATION = new GetProductListLambdaConfig();
+    private static final LambdaConfiguration LAMBDA_CONFIGURATION = new GetProductListLambdaConfig();
 
     protected ProductService productService = Services.createProductService();
 
@@ -28,15 +29,16 @@ public class GetProductListLambda implements RequestHandler<APIGatewayProxyReque
             List<ProductDto> products = productService.getProducts();
             return LambdaPayloadUtils.createResponse(200, products);
         } catch (Exception ex) {
+            logger.log(ExceptionUtils.getStackTrace(ex));
             return LambdaPayloadUtils.createDefaultErrorResponse();
         }
     }
 
-    public static Configuration getLambdaConfiguration() {
+    public static LambdaConfiguration getLambdaConfiguration() {
         return LAMBDA_CONFIGURATION;
     }
 
-    private static class GetProductListLambdaConfig implements Configuration {
+    private static class GetProductListLambdaConfig implements LambdaConfiguration {
 
         @Override
         public String getLambdaJarFilePath() {

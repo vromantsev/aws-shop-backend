@@ -11,18 +11,21 @@ import software.amazon.awscdk.services.apigateway.LambdaIntegration;
 import software.amazon.awscdk.services.apigateway.MethodOptions;
 import software.amazon.awscdk.services.apigateway.Resource;
 import software.amazon.awscdk.services.apigateway.RestApi;
-import software.amazon.awscdk.services.codepipeline.actions.S3Trigger;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.BillingMode;
 import software.amazon.awscdk.services.dynamodb.ITable;
 import software.amazon.awscdk.services.dynamodb.Table;
+import software.amazon.awscdk.services.iam.Effect;
 import software.amazon.awscdk.services.iam.ManagedPolicy;
+import software.amazon.awscdk.services.iam.PolicyStatement;
 import software.amazon.awscdk.services.iam.Role;
 import software.amazon.awscdk.services.iam.ServicePrincipal;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.Runtime;
+import software.amazon.awscdk.services.lambda.SnapStartConf;
+import software.amazon.awscdk.services.lambda.eventsources.SqsEventSource;
 import software.amazon.awscdk.services.s3.BlockPublicAccess;
 import software.amazon.awscdk.services.s3.Bucket;
 import software.amazon.awscdk.services.s3.BucketEncryption;
@@ -32,10 +35,15 @@ import software.amazon.awscdk.services.s3.HttpMethods;
 import software.amazon.awscdk.services.s3.IBucket;
 import software.amazon.awscdk.services.s3.NotificationKeyFilter;
 import software.amazon.awscdk.services.s3.notifications.LambdaDestination;
+import software.amazon.awscdk.services.sns.Subscription;
+import software.amazon.awscdk.services.sns.SubscriptionProtocol;
+import software.amazon.awscdk.services.sns.Topic;
+import software.amazon.awscdk.services.sqs.Queue;
 import software.constructs.Construct;
-import ua.reed.config.Configuration;
+import ua.reed.config.LambdaConfiguration;
 import ua.reed.entity.Product;
 import ua.reed.entity.Stock;
+import ua.reed.lambda.CatalogBatchProcessLambda;
 import ua.reed.lambda.GetProductByIdLambda;
 import ua.reed.lambda.GetProductListLambda;
 import ua.reed.lambda.ImportFileParserLambda;
@@ -71,13 +79,14 @@ public class AwsShopBackendStack extends Stack {
         ITable stocksTable = createTableIfNotExists(STOCKS_TABLE_EXISTS_ID, STOCKS_TABLE_ID, STOCKS_TABLE_NAME, Stock.ID_FIELD);
 
         // GetProductListLambda
-        Configuration getProductListLambdaConfiguration = GetProductListLambda.getLambdaConfiguration();
+        LambdaConfiguration getProductListLambdaConfiguration = GetProductListLambda.getLambdaConfiguration();
         Function getProductListLambda = Function.Builder.create(this, getProductListLambdaConfiguration.getLambdaName())
                 .runtime(Runtime.JAVA_21)
                 .timeout(Duration.seconds(30))
                 .code(Code.fromAsset(Paths.get(getProductListLambdaConfiguration.getLambdaJarFilePath()).toFile().getPath()))
                 .handler(getProductListLambdaConfiguration.getHandlerString())
                 .memorySize(512)
+                .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
                 .environment(
                         Map.of(
                                 PRODUCT_TABLE_ENV_KEY, productsTable.getTableName(),
@@ -91,13 +100,14 @@ public class AwsShopBackendStack extends Stack {
         stocksTable.grantReadWriteData(getProductListLambda);
 
         // GetProductByIdLambda
-        Configuration getProductByIdLambdaConfiguration = GetProductByIdLambda.getLambdaConfiguration();
+        LambdaConfiguration getProductByIdLambdaConfiguration = GetProductByIdLambda.getLambdaConfiguration();
         Function getProductByIdLambda = Function.Builder.create(this, getProductByIdLambdaConfiguration.getLambdaName())
                 .runtime(Runtime.JAVA_21)
                 .timeout(Duration.seconds(30))
                 .code(Code.fromAsset(Paths.get(getProductByIdLambdaConfiguration.getLambdaJarFilePath()).toFile().getPath()))
                 .handler(getProductByIdLambdaConfiguration.getHandlerString())
                 .memorySize(512)
+                .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
                 .environment(
                         Map.of(
                                 PRODUCT_TABLE_ENV_KEY, productsTable.getTableName(),
@@ -111,13 +121,14 @@ public class AwsShopBackendStack extends Stack {
         stocksTable.grantReadWriteData(getProductByIdLambda);
 
         // PutProductWithStockLambda
-        Configuration putProductWithStockLambdaConfiguration = PutProductWithStockLambda.getLambdaConfiguration();
+        LambdaConfiguration putProductWithStockLambdaConfiguration = PutProductWithStockLambda.getLambdaConfiguration();
         Function putProductWithStockLambda = Function.Builder.create(this, putProductWithStockLambdaConfiguration.getLambdaName())
                 .runtime(Runtime.JAVA_21)
                 .timeout(Duration.seconds(30))
                 .code(Code.fromAsset(Paths.get(putProductWithStockLambdaConfiguration.getLambdaJarFilePath()).toFile().getPath()))
                 .handler(putProductWithStockLambdaConfiguration.getHandlerString())
                 .memorySize(512)
+                .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
                 .environment(
                         Map.of(
                                 PRODUCT_TABLE_ENV_KEY, productsTable.getTableName(),
@@ -131,13 +142,14 @@ public class AwsShopBackendStack extends Stack {
         stocksTable.grantReadWriteData(putProductWithStockLambda);
 
         // importProductFileLambda
-        Configuration importProductFileLambdaConfiguration = ImportProductFileLambda.getLambdaConfiguration();
+        LambdaConfiguration importProductFileLambdaConfiguration = ImportProductFileLambda.getLambdaConfiguration();
         Function importProductFileLambda = Function.Builder.create(this, importProductFileLambdaConfiguration.getLambdaName())
                 .runtime(Runtime.JAVA_21)
                 .timeout(Duration.seconds(30))
                 .code(Code.fromAsset(Paths.get(importProductFileLambdaConfiguration.getLambdaJarFilePath()).toFile().getPath()))
                 .handler(importProductFileLambdaConfiguration.getHandlerString())
                 .memorySize(512)
+                .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
                 .environment(
                         Map.of(
                                 Constants.IMPORT_BUCKET_NAME_KEY, importsBucket.getBucketName()
@@ -158,17 +170,28 @@ public class AwsShopBackendStack extends Stack {
         // permissions for S3 bucket
         importsBucket.grantReadWrite(lambdaRole);
 
+
+        // catalogItemsQueue
+        Queue catalogItemsQueue = Queue.Builder.create(this, Constants.CATALOG_ITEMS_QUEUE_ID)
+                .queueName(Constants.CATALOG_ITEMS_QUEUE_NAME)
+                .visibilityTimeout(Duration.minutes(1))
+                .receiveMessageWaitTime(Duration.seconds(20))
+                .retentionPeriod(Duration.hours(1))
+                .build();
+
         // importFileParserLambda
-        Configuration importFileParserLambdaConfig = ImportFileParserLambda.getLambdaConfiguration();
+        LambdaConfiguration importFileParserLambdaConfig = ImportFileParserLambda.getLambdaConfiguration();
         Function importFileParserLambda = Function.Builder.create(this, importFileParserLambdaConfig.getLambdaName())
                 .runtime(Runtime.JAVA_21)
                 .timeout(Duration.minutes(1))
                 .code(Code.fromAsset(Paths.get(importFileParserLambdaConfig.getLambdaJarFilePath()).toFile().getPath()))
                 .handler(importFileParserLambdaConfig.getHandlerString())
                 .memorySize(512)
+                .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
                 .environment(
                         Map.of(
-                                Constants.IMPORT_BUCKET_NAME_KEY, importsBucket.getBucketName()
+                                Constants.IMPORT_BUCKET_NAME_KEY, importsBucket.getBucketName(),
+                                Constants.CATALOG_ITEMS_QUEUE_KEY, catalogItemsQueue.getQueueUrl()
                         )
                 )
                 .build();
@@ -181,6 +204,52 @@ public class AwsShopBackendStack extends Stack {
                         .prefix(Constants.UPLOAD_S3_DIRECTORY)
                         .build()
         );
+
+        // catalogBatchProcessLambda
+        LambdaConfiguration catalogBatchProcessLambdaConfig = CatalogBatchProcessLambda.getLambdaConfiguration();
+        Function catalogBatchProcessLambda = Function.Builder.create(this, catalogBatchProcessLambdaConfig.getLambdaName())
+                .runtime(Runtime.JAVA_21)
+                .timeout(Duration.minutes(1))
+                .code(Code.fromAsset(Paths.get(catalogBatchProcessLambdaConfig.getLambdaJarFilePath()).toFile().getPath()))
+                .handler(catalogBatchProcessLambdaConfig.getHandlerString())
+                .memorySize(512)
+                .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
+                .environment(Map.of(Constants.CATALOG_ITEMS_QUEUE_KEY, catalogItemsQueue.getQueueUrl()))
+                .build();
+
+        // catalogBatchProcessLambda is granted read/write permissions to interact with dynamoDb
+        productsTable.grantReadWriteData(catalogBatchProcessLambda);
+        stocksTable.grantReadWriteData(catalogBatchProcessLambda);
+
+        // sending 5 messages at a time to catalogBatchProcessLambda
+        SqsEventSource batchOfFiveEventSource = SqsEventSource.Builder.create(catalogItemsQueue)
+                .batchSize(5)
+                .reportBatchItemFailures(true)
+                .build();
+
+        // assigning event source to catalogBatchProcessLambda
+        catalogBatchProcessLambda.addEventSource(batchOfFiveEventSource);
+
+        // importFileParserLambda can send messages to SQS
+        PolicyStatement lambdasCanReadWriteToSqsQueue = PolicyStatement.Builder.create()
+                .effect(Effect.ALLOW)
+                .actions(
+                        List.of(
+                                "sqs:ChangeMessageVisibility",
+                                "sqs:DeleteMessage",
+                                "sqs:GetQueueAttributes",
+                                "sqs:GetQueueUrl",
+                                "sqs:SendMessage",
+                                "sqs:ReceiveMessage"
+                        )
+                )
+                .resources(List.of(catalogItemsQueue.getQueueArn()))
+                .build();
+
+        importFileParserLambda.addToRolePolicy(lambdasCanReadWriteToSqsQueue);
+        catalogBatchProcessLambda.addToRolePolicy(lambdasCanReadWriteToSqsQueue);
+
+        createSnsTopicAndSubscription(catalogBatchProcessLambda);
 
         // API Gateway
         RestApi restApi = RestApi.Builder.create(this, "ProductsRestApi")
@@ -229,6 +298,33 @@ public class AwsShopBackendStack extends Stack {
                 .proxy(true)
                 .build();
         productId.addMethod("GET", productByIdLambda);
+    }
+
+    private void createSnsTopicAndSubscription(final Function lambdaFunction) {
+            // define a topic
+            Topic topic = Topic.Builder.create(this, Constants.SNS_EMAIL_TOPIC_ID)
+                    .topicName(Constants.SNS_EMAIL_TOPIC_NAME)
+                    .build();
+
+            // define email subscription
+            Subscription.Builder.create(this, Constants.SNS_EMAIL_SIBSCRIPTION_ID)
+                    .topic(topic)
+                    .protocol(SubscriptionProtocol.EMAIL)
+                    .endpoint("vladyslav.romantsev@gmail.com")
+                    .build();
+
+            // SNS permissions
+            PolicyStatement publishPermissions = PolicyStatement.Builder.create()
+                    .effect(Effect.ALLOW)
+                    .actions(List.of("sns:Publish", "sns:ListTopics"))
+                    .resources(List.of("*"))
+                    .build();
+
+            // assign permissions to catalogBatchProcessLambda
+            lambdaFunction.addToRolePolicy(publishPermissions);
+
+            // catalogBatchProcessLambda is allowed to publish to this topic
+            topic.grantPublish(lambdaFunction);
     }
 
     private IBucket createBucketIfNotExists() {

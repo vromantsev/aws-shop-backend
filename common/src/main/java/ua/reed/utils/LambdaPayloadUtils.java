@@ -1,8 +1,6 @@
 package ua.reed.utils;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import ua.reed.dto.ProductDto;
 
 import java.math.BigDecimal;
@@ -17,10 +15,8 @@ public final class LambdaPayloadUtils {
     private static final String APPLICATION_JSON = "application/json";
     private static final Map<String, String> DEFAULT_ERROR_HEADERS = Map.of(CONTENT_TYPE_HEADER, APPLICATION_JSON);
     private static final Map<String, Object> ERROR_MESSAGE_PAYLOAD = Map.of("message", "Internal Server Error");
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private LambdaPayloadUtils() {
-    }
+    private LambdaPayloadUtils() {}
 
     public static <T> APIGatewayProxyResponseEvent createResponse(final int statusCode, final T body) {
         return createResponseInternal(statusCode, null, body);
@@ -31,7 +27,7 @@ public final class LambdaPayloadUtils {
                                                                            final T body) {
         var response = new APIGatewayProxyResponseEvent()
                 .withStatusCode(statusCode)
-                .withBody(body instanceof String bodyString ? bodyString : createBody(body));
+                .withBody(body instanceof String bodyString ? bodyString : JsonUtils.toJson(body));
         Map<String, String> corsHeaders = defaultCorsHeaders();
         if (headers != null && !headers.isEmpty()) {
             corsHeaders.putAll(headers);
@@ -46,14 +42,6 @@ public final class LambdaPayloadUtils {
 
     public static APIGatewayProxyResponseEvent createErrorResponse(final String message) {
         return createResponseInternal(500, DEFAULT_ERROR_HEADERS, message);
-    }
-
-    public static <T> String createBody(T body) {
-        try {
-            return MAPPER.writeValueAsString(body);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public static Map<String, String> defaultCorsHeaders() {
@@ -117,10 +105,6 @@ public final class LambdaPayloadUtils {
     }
 
     public static Optional<ProductDto> tryParseBody(final String body) {
-        try {
-            return Optional.of(MAPPER.readValue(body, ProductDto.class));
-        } catch (JsonProcessingException jpe) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(JsonUtils.fromJson(body, ProductDto.class));
     }
 }

@@ -1,6 +1,6 @@
 package ua.reed.config;
 
-public interface Configuration {
+public interface LambdaConfiguration {
 
     String getLambdaJarFilePath();
 
