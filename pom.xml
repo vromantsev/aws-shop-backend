@@ -123,5 +123,6 @@
         <module>import-product-file-lambda</module>
         <module>import-file-parser-lambda</module>
         <module>catalog-batch-process-lambda</module>
+        <module>authorization-service</module>
     </modules>
 </project>

@@ -28,5 +28,6 @@ public final class Constants {
     public static final String SNS_EMAIL_TOPIC_NAME = "rs-app-email-topic-v1";
     public static final String SNS_EMAIL_TOPIC_ID = "CreateSnsEmailTopicId";
     public static final String SNS_EMAIL_SIBSCRIPTION_ID = "CreateEmailTopicSubscriptionId";
+    public static final String AUTH_STACK_ID = "AuthServiceStack";
 
 }
