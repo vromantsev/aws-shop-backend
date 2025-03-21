@@ -3,25 +3,19 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>ua.reed</groupId>
         <artifactId>aws-shop-parent</artifactId>
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>cdk</artifactId>
+    <artifactId>authorization-service</artifactId>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <cdk.version>2.178.1</cdk.version>
         <constructs.version>[10.0.0,11.0.0)</constructs.version>
-        <get-product-list-lambda.version>1.0.0</get-product-list-lambda.version>
-        <get-product-by-id-lambda.version>1.0.0</get-product-by-id-lambda.version>
-        <put-product-with-stock-lambda.version>1.0.0</put-product-with-stock-lambda.version>
-        <import-product-file-lambda.version>1.0.0</import-product-file-lambda.version>
-        <import-file-parser-lambda.version>1.0.0</import-file-parser-lambda.version>
-        <catalog-batch-process-lambda.version>1.0.0</catalog-batch-process-lambda.version>
+        <common.version>1.0.0</common.version>
     </properties>
 
     <dependencies>
@@ -36,36 +30,10 @@
             <artifactId>constructs</artifactId>
             <version>${constructs.version}</version>
         </dependency>
-        <!-- Executable modules -->
         <dependency>
             <groupId>ua.reed</groupId>
-            <artifactId>get-product-list-lambda</artifactId>
-            <version>${get-product-list-lambda.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ua.reed</groupId>
-            <artifactId>get-product-by-id-lambda</artifactId>
-            <version>${get-product-by-id-lambda.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ua.reed</groupId>
-            <artifactId>put-product-with-stock-lambda</artifactId>
-            <version>${put-product-with-stock-lambda.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ua.reed</groupId>
-            <artifactId>import-product-file-lambda</artifactId>
-            <version>${import-product-file-lambda.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ua.reed</groupId>
-            <artifactId>import-file-parser-lambda</artifactId>
-            <version>${import-file-parser-lambda.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ua.reed</groupId>
-            <artifactId>catalog-batch-process-lambda</artifactId>
-            <version>${catalog-batch-process-lambda.version}</version>
+            <artifactId>common</artifactId>
+            <version>${common.version}</version>
         </dependency>
     </dependencies>
 
