@@ -1,16 +1,20 @@
 package ua.reed.infrastructure;
 
 import software.amazon.awscdk.Duration;
+import software.amazon.awscdk.Fn;
 import software.amazon.awscdk.RemovalPolicy;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
+import software.amazon.awscdk.services.apigateway.AuthorizationType;
 import software.amazon.awscdk.services.apigateway.Cors;
 import software.amazon.awscdk.services.apigateway.CorsOptions;
 import software.amazon.awscdk.services.apigateway.IResource;
+import software.amazon.awscdk.services.apigateway.IdentitySource;
 import software.amazon.awscdk.services.apigateway.LambdaIntegration;
 import software.amazon.awscdk.services.apigateway.MethodOptions;
 import software.amazon.awscdk.services.apigateway.Resource;
 import software.amazon.awscdk.services.apigateway.RestApi;
+import software.amazon.awscdk.services.apigateway.TokenAuthorizer;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.BillingMode;
@@ -23,6 +27,8 @@ import software.amazon.awscdk.services.iam.Role;
 import software.amazon.awscdk.services.iam.ServicePrincipal;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
+import software.amazon.awscdk.services.lambda.IFunction;
+import software.amazon.awscdk.services.lambda.Permission;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.amazon.awscdk.services.lambda.SnapStartConf;
 import software.amazon.awscdk.services.lambda.eventsources.SqsEventSource;
@@ -257,9 +263,15 @@ public class AwsShopBackendStack extends Stack {
                 .description("REST api that provides integration with multiple Lambda functions")
                 .defaultCorsPreflightOptions(
                         CorsOptions.builder()
-                                .allowOrigins(Cors.ALL_ORIGINS)
+                                .allowOrigins(
+                                        List.of(
+                                                "https://d262msk9enmcj6.cloudfront.net",
+                                                "http://localhost:3000"
+                                        )
+                                )
                                 .allowMethods(Cors.ALL_METHODS)
                                 .allowHeaders(Cors.DEFAULT_HEADERS)
+                                .allowCredentials(true)
                                 .build()
                 )
                 .build();
@@ -278,13 +290,45 @@ public class AwsShopBackendStack extends Stack {
 
         // /products
         IResource restApiRoot = restApi.getRoot();
+
+        // import authorizer lambda ARN
+        String authorizerLambdaArn = Fn.importValue(Constants.AUTHORIZER_ARN_KEY);
+
+        // import authorizer lambda
+        IFunction lambdaAuthorizer = Function.fromFunctionArn(this, "ImportLambdaAuthorizer", authorizerLambdaArn);
+
+        // define token authorizer
+        TokenAuthorizer tokenAuthorizer = TokenAuthorizer.Builder.create(this, Constants.TOKEN_AUTHORIZER_ID)
+                .handler(lambdaAuthorizer)
+                .resultsCacheTtl(Duration.minutes(3))
+                .identitySource(IdentitySource.header("Authorization"))
+                .build();
+
         Resource importProductFile = restApiRoot.addResource(Constants.IMPORT_FILE_PATH);
         importProductFile.addMethod(
                 "GET",
                 importProductFileLambdaIntegration,
                 MethodOptions.builder()
                         .requestParameters(Map.of("method.request.querystring.name", true))
+                        .authorizationType(AuthorizationType.CUSTOM)
+                        .authorizer(tokenAuthorizer)
                         .build()
+        );
+
+        // add permissions to importFileParserLambda to be invoked by API Gateway
+        importFileParserLambda.addPermission("ApiGatewayInvokePermission", Permission.builder()
+                .principal(new ServicePrincipal("apigateway.amazonaws.com"))
+                .action("lambda:InvokeFunction")
+                .sourceArn(restApi.arnForExecuteApi("GET", "/" + Constants.IMPORT_FILE_PATH))
+                .build()
+        );
+
+        // add permissions to lambda authorizer to be invoked by API Gateway
+        lambdaAuthorizer.addPermission("ApiGatewayAuthorizerPermission", Permission.builder()
+                .principal(new ServicePrincipal("apigateway.amazonaws.com"))
+                .action("lambda:InvokeFunction")
+                .sourceArn(restApi.arnForExecuteApi("GET", "/" + Constants.IMPORT_FILE_PATH))
+                .build()
         );
 
         Resource products = restApiRoot.addResource(PRODUCTS_TABLE_NAME);
@@ -301,30 +345,30 @@ public class AwsShopBackendStack extends Stack {
     }
 
     private void createSnsTopicAndSubscription(final Function lambdaFunction) {
-            // define a topic
-            Topic topic = Topic.Builder.create(this, Constants.SNS_EMAIL_TOPIC_ID)
-                    .topicName(Constants.SNS_EMAIL_TOPIC_NAME)
-                    .build();
+        // define a topic
+        Topic topic = Topic.Builder.create(this, Constants.SNS_EMAIL_TOPIC_ID)
+                .topicName(Constants.SNS_EMAIL_TOPIC_NAME)
+                .build();
 
-            // define email subscription
-            Subscription.Builder.create(this, Constants.SNS_EMAIL_SIBSCRIPTION_ID)
-                    .topic(topic)
-                    .protocol(SubscriptionProtocol.EMAIL)
-                    .endpoint("vladyslav.romantsev@gmail.com")
-                    .build();
+        // define email subscription
+        Subscription.Builder.create(this, Constants.SNS_EMAIL_SIBSCRIPTION_ID)
+                .topic(topic)
+                .protocol(SubscriptionProtocol.EMAIL)
+                .endpoint("vladyslav.romantsev@gmail.com")
+                .build();
 
-            // SNS permissions
-            PolicyStatement publishPermissions = PolicyStatement.Builder.create()
-                    .effect(Effect.ALLOW)
-                    .actions(List.of("sns:Publish", "sns:ListTopics"))
-                    .resources(List.of("*"))
-                    .build();
+        // SNS permissions
+        PolicyStatement publishPermissions = PolicyStatement.Builder.create()
+                .effect(Effect.ALLOW)
+                .actions(List.of("sns:Publish", "sns:ListTopics"))
+                .resources(List.of("*"))
+                .build();
 
-            // assign permissions to catalogBatchProcessLambda
-            lambdaFunction.addToRolePolicy(publishPermissions);
+        // assign permissions to catalogBatchProcessLambda
+        lambdaFunction.addToRolePolicy(publishPermissions);
 
-            // catalogBatchProcessLambda is allowed to publish to this topic
-            topic.grantPublish(lambdaFunction);
+        // catalogBatchProcessLambda is allowed to publish to this topic
+        topic.grantPublish(lambdaFunction);
     }
 
     private IBucket createBucketIfNotExists() {

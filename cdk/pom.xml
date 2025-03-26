@@ -22,6 +22,7 @@
         <import-product-file-lambda.version>1.0.0</import-product-file-lambda.version>
         <import-file-parser-lambda.version>1.0.0</import-file-parser-lambda.version>
         <catalog-batch-process-lambda.version>1.0.0</catalog-batch-process-lambda.version>
+        <authorization-service.version>1.0.0</authorization-service.version>
     </properties>
 
     <dependencies>
@@ -66,6 +67,11 @@
             <groupId>ua.reed</groupId>
             <artifactId>catalog-batch-process-lambda</artifactId>
             <version>${catalog-batch-process-lambda.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ua.reed</groupId>
+            <artifactId>authorization-service</artifactId>
+            <version>${authorization-service.version}</version>
         </dependency>
     </dependencies>
 

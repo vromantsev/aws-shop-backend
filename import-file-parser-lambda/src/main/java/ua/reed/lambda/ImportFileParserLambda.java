@@ -17,10 +17,14 @@ import ua.reed.service.S3ObjectService;
 import ua.reed.service.Services;
 import ua.reed.service.SqsService;
 import ua.reed.utils.Constants;
+import ua.reed.utils.LambdaPayloadUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class ImportFileParserLambda implements RequestStreamHandler {
@@ -58,10 +62,23 @@ public class ImportFileParserLambda implements RequestStreamHandler {
         } catch (Exception ex) {
             LOGGER.severe(ExceptionUtils.getStackTrace(ex));
         }
+        // we should send CORS headers regardless of how the lambda execution was finished
+        sendResponse(output);
     }
 
     public static LambdaConfiguration getLambdaConfiguration() {
         return LAMBDA_CONFIGURATION;
+    }
+
+    private void sendResponse(final OutputStream output) {
+        try {
+            Map<String, Object> response = new HashMap<>();
+            response.put("headers", LambdaPayloadUtils.defaultCorsHeaders());
+            output.write(objectMapper.writeValueAsString(response).getBytes());
+            output.flush();
+        } catch (IOException e) {
+            LOGGER.severe(ExceptionUtils.getStackTrace(e));
+        }
     }
 
     private static class ImportFileParserLambdaConfig implements LambdaConfiguration {

@@ -49,13 +49,36 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <mainClass>ua.reed.infrastructure.AwsShopBackendApp</mainClass>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>software.constructs:constructs</exclude>
+                                    <exclude>software.amazon.awscdk:aws-cdk-lib</exclude>
+                                </excludes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>.env</include>
+                </includes>
+                <targetPath>${project.build.outputDirectory}</targetPath>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
     </build>
 </project>

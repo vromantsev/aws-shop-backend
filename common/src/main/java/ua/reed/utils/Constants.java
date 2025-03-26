@@ -29,5 +29,20 @@ public final class Constants {
     public static final String SNS_EMAIL_TOPIC_ID = "CreateSnsEmailTopicId";
     public static final String SNS_EMAIL_SIBSCRIPTION_ID = "CreateEmailTopicSubscriptionId";
     public static final String AUTH_STACK_ID = "AuthServiceStack";
+    public static final String AUTH_DEPLOY_STACK_ID = "AuthorizationServiceStack";
+    public static final String USERNAME_KEY = "username";
+    public static final String PASS_KEY = "pass";
+    public static final String API_GW_ID_PARAMETER = "ApiGatewayIdParameter";
+    public static final String API_GW_ID_KEY = "api-gateway-rest-api-id";
+    public static final String IMPORTED_API_GW_ID = "ImportedRestApiId";
+    public static final String TOKEN_AUTHORIZER_ID = "TokenAuthorizerId";
+    public static final String API_GW_ROOT_RESOURCE_ID_KEY = "root-resource-id";
+    public static final String API_GW_ROOT_RESOURCE_ID_PARAMETER = "ApiGatewayRootResourceIdParameter";
+    public static final String IMPORT_RESOURCE_ID_PARAMETER = "IMPORT_RESOURCE_ID_PARAMETER";
+    public static final String IMPORT_RESOURCE_ID_KEY = "import-resource-id";
+    public static final String EXPORTED_IMPORT_RESOURCE_ID = "ExportedImportResourceId";
+    public static final String AUTHORIZER_EXPORT_ARN_PARAMETER = "AuthorizerExportArnParameter";
+    public static final String AUTHORIZER_ARN_KEY = "authorizer-arn";
+
 
 }

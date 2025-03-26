@@ -23,6 +23,7 @@
         <sqs.version>2.25.35</sqs.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <sns.version>2.25.35</sns.version>
+        <java-dotenv.version>5.2.2</java-dotenv.version>
     </properties>
 
     <dependencies>
@@ -85,6 +86,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons-lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>java-dotenv</artifactId>
+            <version>${java-dotenv.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
