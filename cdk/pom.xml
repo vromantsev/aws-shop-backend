@@ -13,8 +13,6 @@
     <artifactId>cdk</artifactId>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <cdk.version>2.178.1</cdk.version>
         <constructs.version>[10.0.0,11.0.0)</constructs.version>
@@ -24,6 +22,7 @@
         <import-product-file-lambda.version>1.0.0</import-product-file-lambda.version>
         <import-file-parser-lambda.version>1.0.0</import-file-parser-lambda.version>
         <catalog-batch-process-lambda.version>1.0.0</catalog-batch-process-lambda.version>
+        <authorization-service.version>1.0.0</authorization-service.version>
     </properties>
 
     <dependencies>
@@ -68,6 +67,11 @@
             <groupId>ua.reed</groupId>
             <artifactId>catalog-batch-process-lambda</artifactId>
             <version>${catalog-batch-process-lambda.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ua.reed</groupId>
+            <artifactId>authorization-service</artifactId>
+            <version>${authorization-service.version}</version>
         </dependency>
     </dependencies>
 

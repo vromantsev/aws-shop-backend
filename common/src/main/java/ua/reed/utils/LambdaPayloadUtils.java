@@ -19,12 +19,12 @@ public final class LambdaPayloadUtils {
     private LambdaPayloadUtils() {}
 
     public static <T> APIGatewayProxyResponseEvent createResponse(final int statusCode, final T body) {
-        return createResponseInternal(statusCode, null, body);
+        return createResponse(statusCode, null, body);
     }
 
-    private static <T> APIGatewayProxyResponseEvent createResponseInternal(final int statusCode,
-                                                                           final Map<String, String> headers,
-                                                                           final T body) {
+    public static <T> APIGatewayProxyResponseEvent createResponse(final int statusCode,
+                                                                  final Map<String, String> headers,
+                                                                  final T body) {
         var response = new APIGatewayProxyResponseEvent()
                 .withStatusCode(statusCode)
                 .withBody(body instanceof String bodyString ? bodyString : JsonUtils.toJson(body));
@@ -37,19 +37,20 @@ public final class LambdaPayloadUtils {
     }
 
     public static APIGatewayProxyResponseEvent createDefaultErrorResponse() {
-        return LambdaPayloadUtils.createResponseInternal(500, DEFAULT_ERROR_HEADERS, ERROR_MESSAGE_PAYLOAD);
+        return LambdaPayloadUtils.createResponse(500, DEFAULT_ERROR_HEADERS, ERROR_MESSAGE_PAYLOAD);
     }
 
     public static APIGatewayProxyResponseEvent createErrorResponse(final String message) {
-        return createResponseInternal(500, DEFAULT_ERROR_HEADERS, message);
+        return createResponse(500, DEFAULT_ERROR_HEADERS, message);
     }
 
     public static Map<String, String> defaultCorsHeaders() {
         return new HashMap<>(
                 Map.of(
-                        "Access-Control-Allow-Origin", "*",
+                        "Access-Control-Allow-Origin", "https://d262msk9enmcj6.cloudfront.net",
                         "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS",
-                        "Access-Control-Allow-Headers", "Content-Type,Authorization"
+                        "Access-Control-Allow-Headers", "*",
+                        "Access-Control-Allow-Credentials", "true"
                 )
         );
     }
